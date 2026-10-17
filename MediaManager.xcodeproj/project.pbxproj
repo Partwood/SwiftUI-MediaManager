@@ -9,12 +9,14 @@
 /* Begin PBXBuildFile section */
 		99775DF83083B553005E13CE /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 99775DF73083B54E005E13CE /* README.md */; };
 		99775DFA3083C6A7005E13CE /* guidelines.md in Resources */ = {isa = PBXBuildFile; fileRef = 99775DF93083C6A7005E13CE /* guidelines.md */; };
+		99775DFE3083D59D005E13CE /* system_prompt.md in Resources */ = {isa = PBXBuildFile; fileRef = 99775DFD3083D597005E13CE /* system_prompt.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* MediaManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MediaManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		99775DF73083B54E005E13CE /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		99775DF93083C6A7005E13CE /* guidelines.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = guidelines.md; sourceTree = "<group>"; };
+		99775DFD3083D597005E13CE /* system_prompt.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = system_prompt.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -37,6 +39,7 @@
 		000000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
+				99775DFD3083D597005E13CE /* system_prompt.md */,
 				99775DF93083C6A7005E13CE /* guidelines.md */,
 				99775DF73083B54E005E13CE /* README.md */,
 				000000000000000000000010 /* MediaManager */,
@@ -112,6 +115,7 @@
 			isa = PBXResourcesBuildPhase;
 			files = (
 				99775DF83083B553005E13CE /* README.md in Resources */,
+				99775DFE3083D59D005E13CE /* system_prompt.md in Resources */,
 				99775DFA3083C6A7005E13CE /* guidelines.md in Resources */,
 			);
 		};
