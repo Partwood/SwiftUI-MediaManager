@@ -25,7 +25,6 @@ struct FileBrowserView: View {
          HStack {
             Button(action: { isShowingFolderPicker = true }) {
                Label("Select Directory", systemImage: "folder.badge.plus")
-               //Label("Select Directory", systemName: "folder.badge.plus")
             }
             .buttonStyle(.borderedProminent)
             
@@ -81,112 +80,6 @@ struct FileBrowserView: View {
             print("Error selecting directory: \(error.localizedDescription)")
          }
       }
-      
-      //      NavigationView {
-//         // Modify the List to Table view
-//         Table(items) {
-//            TableColumn("Name", value: \.name)
-//            //TableColumn("Name", value: $0)
-//         }
-//      }.navigationTitle("File Browser")
-//      Table(files) {
-////         TableColumn("Name", value: $0.name)
-////         TableColumn("Type", value: $0.type)
-////         TableColumn("Size", value: $0.size)
-////         TableColumn("Modified", value: $0.modifiedDate)
-//      }
-//      .navigationTitle("File Browser")
-//      .onChange(of: sortColumn) { newColumn in
-//         // Implement sorting logic here
-//      }
-//      
-//      // Update the file query to use MCP
-//      .onAppear {
-//         // Fetch files using MCP filesystem tool
-//         // Example: mcp_SwagenticMCP_filesystem(operation: "list", path: "./", name: "")
-//      }    // Add this inside the FileBrowserView struct
-//      
-//      // Update the onAppear to fetch files
-//      .onAppear {
-//         // Use MCP to list files and populate the files array
-//         // Example: mcp_SwagenticMCP_filesystem(operation: "list", path: "./", name: "")
-//         // Process the response to populate files array
-//      }
-//      
-//      // Add this to handle file selection
-//      .onChange(of: selectedFile) { newFile in
-//         if let newFile = newFile, !newFile.isDirectory {
-//            // Use MCP to get file attributes
-//            // Example: mcp_SwagenticMCP_filesystem(operation: "info", path: newFile, name: "")
-//            // Update fileAttributes dictionary
-//         }
-//      }    // Implement sorting logic in onChange
-//      .onChange(of: sortColumn) { newColumn in
-//         files.sort {
-//            switch newColumn {
-//            case "name":
-//               return $0.name < $1.name
-//            case "type":
-//               return $0.type < $1.type
-//            case "size":
-//               return Int($0.size)! < Int($1.size)!
-//            case "modified":
-//               return $0.modifiedDate < $1.modifiedDate
-//            default:
-//               return false
-//            }
-//         }
-//      }
-//      
-//      // Implement MCP file listing in onAppear
-//      .onAppear {
-//         FileSystem().listDirectory(at: "./") { result in
-//            // Process directory listing and populate files array
-//            // This would require a completion handler implementation
-//         }
-//      }
-//      
-//      // Implement file attribute lookup on selection
-//      .onChange(of: selectedFile) { newFile in
-//         if let newFile = newFile, !newFile.isDirectory {
-//            FileSystem().info(at: newFile, name: "") { result in
-//               // Parse attributes and update fileAttributes dictionary
-//               // This would require a completion handler implementation
-//            }
-//         }
-//      }
-      
-//      NavigationView {
-//          List {
-//
-////             ForEach(files) { file in
-////                if file.isDirectory {
-////                   NavigationLink(destination: FileBrowserView()) {
-////                      Text(file.name)
-////                   }
-////                } else {
-////                   Button(action: {
-////                      selectedFile = file.path
-////                      // Query file attributes using MCP tool
-////                      // Example: mcp_SwagenticMCP_filesystem(operation: "info", path: file.path, name: file.name)
-////                   }) {
-////                      Text(file.name)
-////                   }
-////                }
-////             }
-//          }
-//          .navigationTitle("File Browser")
-//          
-////          if let selectedFile = selectedFile {
-////             VStack {
-////                Text("File Attributes:")
-////                ForEach(fileAttributes.keys.sorted()) { key in
-////                   Text("$key",<#label#>: $fileAttributes[key]!)
-////                }
-////             }
-////             .padding()
-////          }
-//       }
     }
    
    // NEW: Handles entering a directory if double-clicked
