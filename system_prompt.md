@@ -11,6 +11,8 @@ Directory:'/Users/jvsherwood/projects/MediaManager'
 - Follow the existing project structure
 - Use MCP functions to perform operations
 - Double-check the arguments for each MCP tool based on the operation
+- Don't introduce MCP code into the destination project
+- All project code (swift files and their related files) should be found somewhere under the directory '/Users/jvsherwood/projects/MediaManager/MediaManager'
 
 ## Project Code
 The project code is found in ‘/Users/jvsherwood/projects/MediaManager/MediaManager/MediaManager’ (next to the file MediaManager.xcodeproj), all project code should be in this directory or one of its children.

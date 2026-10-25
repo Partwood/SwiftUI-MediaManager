@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9964805D308E18D600A8A7EF /* file_metadata_side_panel.md in Resources */ = {isa = PBXBuildFile; fileRef = 9964805C308E18D600A8A7EF /* file_metadata_side_panel.md */; };
 		99775DF83083B553005E13CE /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 99775DF73083B54E005E13CE /* README.md */; };
 		99775DFA3083C6A7005E13CE /* guidelines.md in Resources */ = {isa = PBXBuildFile; fileRef = 99775DF93083C6A7005E13CE /* guidelines.md */; };
 		99775DFE3083D59D005E13CE /* system_prompt.md in Resources */ = {isa = PBXBuildFile; fileRef = 99775DFD3083D597005E13CE /* system_prompt.md */; };
@@ -15,6 +16,7 @@
 
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* MediaManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MediaManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9964805C308E18D600A8A7EF /* file_metadata_side_panel.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = file_metadata_side_panel.md; sourceTree = "<group>"; };
 		99775DF73083B54E005E13CE /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		99775DF93083C6A7005E13CE /* guidelines.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = guidelines.md; sourceTree = "<group>"; };
 		99775DFD3083D597005E13CE /* system_prompt.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = system_prompt.md; sourceTree = "<group>"; };
@@ -62,6 +64,7 @@
 			isa = PBXGroup;
 			children = (
 				99775E18308501D6005E13CE /* architecture.md */,
+				9964805C308E18D600A8A7EF /* file_metadata_side_panel.md */,
 			);
 			path = docs;
 			sourceTree = "<group>";
@@ -128,6 +131,7 @@
 				99775E1A308501D6005E13CE /* architecture.md in Resources */,
 				99775DF83083B553005E13CE /* README.md in Resources */,
 				99775DFE3083D59D005E13CE /* system_prompt.md in Resources */,
+				9964805D308E18D600A8A7EF /* file_metadata_side_panel.md in Resources */,
 				99775DFA3083C6A7005E13CE /* guidelines.md in Resources */,
 			);
 		};
