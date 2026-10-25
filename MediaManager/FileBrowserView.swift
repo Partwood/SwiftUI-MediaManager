@@ -1,4 +1,9 @@
 import SwiftUI
+//import AVFoundation
+//import Combine
+//import UniformTypeIdentifiers
+//import os.log
+//import SwiftUI
 import Foundation
 import UniformTypeIdentifiers
 
@@ -10,11 +15,14 @@ struct FileBrowserView: View {
    @State private var initialPath: String = ""
    @State private var currentPath: String = ""
    @State private var items: [FileItem] = []
+   //@State private var selectedFileID: FileItem.ID? = nil
+   @State private var showMetadataPanel = false
+   @State private var metadataViewModel: FileMetadataViewModel? = nil
    
    @State private var sortOrder = [KeyPathComparator(\FileItem.name)]
    @State private var isShowingFolderPicker = false
    @State private var selectedDirectoryName: String = "No directory selected"
-   @State private var selectedFileID: FileItem.ID? = nil
+   @State var selectedFileID: FileItem.ID? = nil
 
    // NEW: Persist the exact security-scoped URL the user initially chose
    @State private var rootDirectoryURL: URL? = nil
@@ -35,33 +43,46 @@ struct FileBrowserView: View {
          }
          .padding([.horizontal, .top])
          
-         // The Table to display the directory contents
-         Table(items, selection: $selectedFileID, sortOrder: $sortOrder) {
-            TableColumn("Name", value: \.name) { file in
-               HStack {
-                  Image(systemName: file.isDirectory ? "folder.fill" : "doc.fill")
-                     .foregroundColor(file.isDirectory ? .red : .secondary)
-                  Text(file.name)
+         HStack {
+            // The Table to display the directory contents
+            Table(items, selection: $selectedFileID, sortOrder: $sortOrder) {
+               TableColumn("Name", value: \.name) { file in
+                  HStack {
+                     Image(systemName: file.isDirectory ? "folder.fill" : "doc.fill")
+                        .foregroundColor(file.isDirectory ? .red : .secondary)
+                     Text(file.name)
+                  }
+                  // Handle double-click natively on the cell view
+                  .contextClickModifier(outerView: self,file: file, action: navigateTo)
+                  
                }
-               // Handle double-click natively on the cell view
-               .contextClickModifier(file: file, action: navigateTo)
-
+               .width(min: 200, ideal: 300)
+               
+               TableColumn("Type", value: \.type)
+               
+               TableColumn("Size", value: \.size) { file in
+                  Text(file.formattedSize)
+                  // Right-align numeric sizes for better table aesthetics
+                     .frame(maxWidth: .infinity, alignment: .trailing)
+               }
+               .width(100)
+               
+               TableColumn("Path", value: \.path)
             }
-            .width(min: 200, ideal: 300)
-            
-            TableColumn("Type", value: \.type)
-            
-            TableColumn("Size", value: \.size) { file in
-               Text(file.formattedSize)
-               // Right-align numeric sizes for better table aesthetics
-                  .frame(maxWidth: .infinity, alignment: .trailing)
+            .onChange(of: sortOrder) { newOrder in
+               items.sort(using: newOrder)
             }
-            .width(100)
+            // Observe selection changes
+            .onChange(of: selectedFileID) { newValue in
+               handleFileSelectionChanged()
+            }
             
-            TableColumn("Path", value: \.path)
-         }
-         .onChange(of: sortOrder) { newOrder in
-            items.sort(using: newOrder)
+            // File Metadata Side Panel
+            if showMetadataPanel, let viewModel = metadataViewModel {
+               FileMetadataView(viewModel: viewModel, selectedFileID: $selectedFileID)
+                  .frame(width: 400)
+                  .transition(.move(edge: .trailing).combined(with: .opacity))
+            }
          }
       }
       // 2. Attach the native file/folder picker modifier
@@ -119,7 +140,7 @@ struct FileBrowserView: View {
       defer { securityRoot.stopAccessingSecurityScopedResource() }
       
        do {
-          let result = try FileSystem().listDirectory(at: url.path)
+          let result = try FileSystem(securityRoot).listDirectory(at: url.path)
           
           items = result.map { item in
              let fileType: String
@@ -137,11 +158,11 @@ struct FileBrowserView: View {
                 fileType = ""
              }
              
-             return FileItem(url: item.url,name: item.name, isDirectory: item.isDirectory, path: currentPath + "/" + item.name, size: item.attributes?.fileSize ?? 0, type: fileType)
+             return FileItem(url: item.url,name: item.name, isDirectory: item.isDirectory, path: currentPath + "/" + item.name, size: item.attributes?.fileSize ?? 0, type: fileType, creationDate: nil, modifiedDate: nil)
           }
           
           if ( url != securityRoot ) {
-             items.insert(FileItem(url: url.deletingLastPathComponent(),name: "..", isDirectory: true, path: "", size: 0, type: "Folder"), at: 0)
+             items.insert(FileItem(url: url.deletingLastPathComponent(),name: "..", isDirectory: true, path: "", size: 0, type: "Folder", creationDate: nil, modifiedDate: nil), at: 0)
           }
           
           selectedDirectoryName = url.lastPathComponent
@@ -149,6 +170,29 @@ struct FileBrowserView: View {
           logError(error)
        }
     }
+    
+    // Handle file selection changes to update metadata
+    func handleFileSelectionChanged() {
+       // 1. We must authorize access using the user-selected ROOT directory
+       guard let securityRoot = rootDirectoryURL else { return }
+       guard securityRoot.startAccessingSecurityScopedResource() else { return }
+       
+       // 2. Ensure we release access to the root when done reading
+       defer {
+          securityRoot.stopAccessingSecurityScopedResource()
+       }
+
+       if let selectedID = selectedFileID, let index = items.firstIndex(where: { $0.id == selectedID }) {
+            let selectedFile = items[index]
+            showMetadataPanel = true
+            metadataViewModel = FileMetadataViewModel(rootDirectoryURL)
+            metadataViewModel?.updateMetadata(for: selectedFile)
+        } else {
+            showMetadataPanel = false
+            metadataViewModel = nil
+        }
+    }
+    
 }
 
 struct FileItem: Identifiable {
@@ -159,6 +203,8 @@ struct FileItem: Identifiable {
    let path: String
    let size: Int64
    let type: String
+   let creationDate: Date?
+   let modifiedDate: Date?
    // Helper to format the byte count into readable sizes (KB, MB, etc.)
    var formattedSize: String {
       if isDirectory { return "--" }
@@ -174,13 +220,17 @@ struct UIFileAttributes {
 }
 
 extension View {
-   func contextClickModifier(file: FileItem, action: @escaping (FileItem) -> Void) -> some View {
+   func contextClickModifier(outerView: FileBrowserView,file: FileItem, action: @escaping (FileItem) -> Void) -> some View {
       self
          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
       // Making the whole cell area interactive instead of just the text bounds
          .contentShape(Rectangle())
          .onTapGesture(count: 2) {
             action(file)
+         }
+         .onTapGesture(count: 1) {
+            outerView.selectedFileID = file.id
+            outerView.handleFileSelectionChanged()
          }
    }
 }

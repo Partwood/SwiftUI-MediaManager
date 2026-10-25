@@ -57,7 +57,11 @@ struct FileAttributes {
       
 final
 class FileSystem {
-
+   private let rootURL: URL?
+   
+   init(_ rootURL: URL?) {
+      self.rootURL = rootURL
+   }
 }
 
 // MARK: Create directory
@@ -98,6 +102,33 @@ extension FileSystem {
    }
    
    func identifyFileType(at url: URL) -> FileContentType {
+      if !url.isExisting() {
+         return .unknown
+      } else {
+         do {
+            if try url.isExistingDirectory() {
+               return .unknown
+            }
+         } catch {
+            logError(error)
+         }
+      }
+      
+      // 1. We must authorize access using the user-selected ROOT directory
+      guard let securityRoot = rootURL else {
+         logError("Invalid scope")
+         return .unknown
+      }
+      guard securityRoot.startAccessingSecurityScopedResource() else {
+         logError("Invalid scope")
+         return .unknown
+      }
+      
+      // 2. Ensure we release access to the root when done reading
+      defer {
+         securityRoot.stopAccessingSecurityScopedResource()
+      }
+      
       do {
          // Read the first 1024 bytes of the file to check for binary patterns or magic numbers
          let fileHandle = try FileHandle(forReadingFrom: url)
