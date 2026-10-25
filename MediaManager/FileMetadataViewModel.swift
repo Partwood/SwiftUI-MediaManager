@@ -74,7 +74,7 @@ class FileMetadataViewModel: ObservableObject {
                   let parser = try DirectMKVParser(fileURL: url)
                   //let tags = try parser.extractMetadata()
                   //debug("tags:\(tags)")
-                  let metadata = parser.parseDuration()
+                  let metadata = parser.parseContent()
                   debug("duration:\((metadata?.durationInSeconds ?? 0)/60)")
 
                   self.videoMetadata = VideoMetadata(
