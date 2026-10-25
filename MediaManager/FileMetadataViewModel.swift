@@ -45,7 +45,7 @@ class FileMetadataViewModel: ObservableObject {
    
    func extractMetadata(_ url: URL) async throws {
       // Extract basic metadata
-      let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+      //let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
       
       // Extract file type
       let contentType = fileSystem.identifyFileType(at: url)

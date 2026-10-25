@@ -134,14 +134,11 @@ extension FileSystem {
          let fileHandle = try FileHandle(forReadingFrom: url)
          defer { fileHandle.closeFile() }
          
-         let data = fileHandle.readData(ofLength: min(1024, Int(fileHandle.seekToEndOfFile())))
+         let min = min(1024, Int(fileHandle.seekToEndOfFile()))
+         try fileHandle.seek(toOffset: 0)
+         let data = fileHandle.readData(ofLength: min)
          let byteArray = [UInt8](data)
-         
-         // Check for null bytes (indicative of binary files)
-         if byteArray.contains(0x00) {
-            return .binary
-         }
-         
+                  
          // Check for JPEG magic number: 0xFFD8FF
          if byteArray.count >= 3 && byteArray[0] == 0xFF && byteArray[1] == 0xD8 && byteArray[2] == 0xFF {
             return .jpeg
@@ -175,8 +172,14 @@ extension FileSystem {
          }
 
          // Check for MKV file: EBML header (Matroska)
-         if byteArray.count >= 5 && byteArray[0] == 0x46 && byteArray[1] == 0x2A && byteArray[2] == 0x41 && byteArray[3] == 0x55 && byteArray[4] == 0x20 {
+         let mkvSignature: [UInt8] = [0x1A, 0x45, 0xDF, 0xA3]
+         if byteArray.count >= 5 && (byteArray[0..<4] == ArraySlice(mkvSignature)) {
             return .mkv
+         }
+
+         // Check for null bytes (indicative of binary files)
+         if byteArray.contains(0x00) {
+            return .binary
          }
 
          // Attempt to decode as UTF-8 text

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "closure #2 in View.contextClickModifier(file:action:):FileBrowserView.swift">
+      </ContextState>
+      <ContextState
+         contextName = "FileBrowserView.handleFileSelectionChanged():FileBrowserView.swift">
+      </ContextState>
+      <ContextState
+         contextName = "FileSystem.identifyFileType(at:):FileSystem.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "byteArray[0..&lt;5]">
+            </PersistentString>
+            <PersistentString
+               value = "(byteArray[0..&lt;4] == ArraySlice(mkvSignature))">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>

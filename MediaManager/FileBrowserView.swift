@@ -15,7 +15,7 @@ struct FileBrowserView: View {
    @State private var initialPath: String = ""
    @State private var currentPath: String = ""
    @State private var items: [FileItem] = []
-   //@State private var selectedFileID: FileItem.ID? = nil
+
    @State private var showMetadataPanel = false
    @State private var metadataViewModel: FileMetadataViewModel? = nil
    

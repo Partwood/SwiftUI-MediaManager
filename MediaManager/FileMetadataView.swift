@@ -71,7 +71,7 @@ struct FileMetadataView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Label("Size", systemImage: "arrow.2.uparrow")
+                        Label("Size", systemImage: "arrow.up.left.and.arrow.down.right.square")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Text(viewModel.file?.formattedSize ?? "N/A")
@@ -80,7 +80,7 @@ struct FileMetadataView: View {
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Label("Path", systemImage: "path")
+                        Label("Path", systemImage: "ellipsis.rectangle")
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Text(viewModel.file?.path ?? "N/A")
