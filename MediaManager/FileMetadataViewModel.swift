@@ -65,12 +65,39 @@ class FileMetadataViewModel: ObservableObject {
          return
       }
       
+      if ( contentType == .mkv ) {
+         fileSystem.accessURL(url, { url in
+            if let url {
+               //let reader = MKVMetadataReader(fileURL: url)
+               //reader.extractMetadata()
+               do {
+                  let parser = try DirectMKVParser(fileURL: url)
+                  //let tags = try parser.extractMetadata()
+                  //debug("tags:\(tags)")
+                  let metadata = parser.parseDuration()
+                  debug("duration:\((metadata?.durationInSeconds ?? 0)/60)")
+
+                  self.videoMetadata = VideoMetadata(
+                     duration: metadata?.durationInSeconds ?? 0,
+                     //resolution: videoTrack.naturalSize,
+                     //frameRate: Double(videoTrack.nominalFrameRate),
+                     //videoCodec: videoTrack.mediaSubtype
+                  )
+               } catch {
+                  logError(error)
+               }
+            }
+         })
+         
+         return
+      }
+      
       let asset = AVURLAsset(url: url)
       
       // Load asset metadata
       Task {
          await MainActor.run {
-            self.extractVideoMetadataSync(asset)
+            self.extractVideoMetadataSync(url, asset)
          }
       }
 //      asset.load() { _, error in
@@ -109,43 +136,47 @@ class FileMetadataViewModel: ObservableObject {
 //      }
 //   }
 
-    private func extractVideoMetadataSync(_ asset: AVAsset) {
-//        let metadata = asset.metadata
-//        let tracks = asset.tracks(withMediaType: .video)
-//        let audioTracks = asset.tracks(withMediaType: .audio)
-//        
-//        // Get duration
-//        let duration = asset.duration
-//        if duration.seconds > 0 {
-//           self.videoMetadata = VideoMetadata(duration: duration.seconds)
-//        }
-//        
-//        // Get video track information
-//        if let videoTrack = tracks.first {
-//            let trackDuration = videoTrack.timeRange
-//            if trackDuration.duration.seconds > 0 {
-//               self.videoMetadata = VideoMetadata(
-//                    duration: trackDuration.duration.seconds,
-//                    resolution: videoTrack.naturalSize,
-//                    frameRate: Double(videoTrack.nominalFrameRate),
-//                    //videoCodec: videoTrack.mediaSubtype
-//                )
-//            }
-//        }
-//        
-//        // Get audio track information
-//        if let audioTrack = audioTracks.first {
-//            let trackDuration = audioTrack.timeRange
-//            if trackDuration.duration.seconds > 0 {
-//               self.videoMetadata = VideoMetadata (
-//                   audioCodec: audioTrack.mediaSubtype
-//                    videoMetadata.audioBitrate = audioTrack.nominalBitrate
-//                )
-//            }
-//        }
-//        
-//        // Get container information
-//       self.videoMetadata?.container = FileManager.default.attributesOfItem(atPath: url.path)[.type]
+    private func extractVideoMetadataSync(_ url: URL,_ asset: AVAsset) {
+       let metadata = asset.metadata
+       let tracks = asset.tracks(withMediaType: .video)
+       let audioTracks = asset.tracks(withMediaType: .audio)
+       
+       // Get duration
+       let duration = asset.duration
+       if duration.seconds > 0 {
+          self.videoMetadata = VideoMetadata(duration: duration.seconds)
+       }
+       
+       // Get video track information
+       if let videoTrack = tracks.first {
+          let trackDuration = videoTrack.timeRange
+          if trackDuration.duration.seconds > 0 {
+             self.videoMetadata = VideoMetadata(
+               duration: trackDuration.duration.seconds,
+               resolution: videoTrack.naturalSize,
+               frameRate: Double(videoTrack.nominalFrameRate),
+               //videoCodec: videoTrack.mediaSubtype
+             )
+          }
+       }
+       
+       // Get audio track information
+       if let audioTrack = audioTracks.first {
+          let trackDuration = audioTrack.timeRange
+          if trackDuration.duration.seconds > 0 {
+             self.videoMetadata = VideoMetadata (
+               //audioCodec: audioTrack.mediaSubtype
+               //videoMetadata.audioBitrate = audioTrack.nominalBitrate
+             )
+          }
+       }
+       
+       do {
+          // Get container information
+          self.videoMetadata?.container = try FileManager.default.attributesOfItem(atPath: url.path)[.type] as? FileAttributeType
+       } catch {
+          logError(error)
+       }
     }
     
     private func extractImageMetadata(_ url: URL, contentType: FileSystem.FileContentType) {

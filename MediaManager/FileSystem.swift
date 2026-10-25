@@ -101,6 +101,27 @@ extension FileSystem {
       case unknown
    }
    
+   func accessURL(_ url: URL,_ operation: @escaping (_ url: URL?)->Void) {
+      // 1. We must authorize access using the user-selected ROOT directory
+      guard let securityRoot = rootURL else {
+         logError("Invalid scope")
+         operation(nil)
+         return
+      }
+      guard securityRoot.startAccessingSecurityScopedResource() else {
+         logError("Invalid scope")
+         operation(nil)
+         return
+      }
+      
+      // 2. Ensure we release access to the root when done reading
+      defer {
+         securityRoot.stopAccessingSecurityScopedResource()
+      }
+      
+      operation(url)
+   }
+   
    func identifyFileType(at url: URL) -> FileContentType {
       if !url.isExisting() {
          return .unknown
