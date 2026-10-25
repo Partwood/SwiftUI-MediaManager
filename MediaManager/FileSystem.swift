@@ -83,16 +83,17 @@ extension FileSystem {
 // MARK: List directory contents
 extension FileSystem {
    enum FileContentType: String {
+      case avi
       case binary
-      case text
+      case html
       case jpeg
-      case png
+      case markdown
+      case mkv
       case mp3
       case mp4
-      case avi
+      case png
+      case text
       case wav
-      case markdown
-      case html
       case unknown
    }
    
@@ -141,7 +142,12 @@ extension FileSystem {
                && byteArray[8] == 0x41 && byteArray[9] == 0x56 && byteArray[10] == 0x49 && byteArray[11] == 0x20 {
             return .avi
          }
-         
+
+         // Check for MKV file: EBML header (Matroska)
+         if byteArray.count >= 5 && byteArray[0] == 0x46 && byteArray[1] == 0x2A && byteArray[2] == 0x41 && byteArray[3] == 0x55 && byteArray[4] == 0x20 {
+            return .mkv
+         }
+
          // Attempt to decode as UTF-8 text
          if let string = String(data: data, encoding: .utf8) {
             // Check for Markdown patterns (e.g., starts with # or ---)

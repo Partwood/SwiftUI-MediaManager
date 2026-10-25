@@ -108,3 +108,21 @@ A side panel that displays detailed metadata information about selected files wh
 - Core Image / ImageIO (for image metadata)
 - AVFoundation (for video/audio metadata)
 - UniformTypeIdentifiers (for type detection)
+
+## Important Updates
+
+### MKV File Format Support
+Matroska (MKV) is now supported for file metadata extraction. MKV files can contain multiple video and audio tracks, subtitles, and chapters. The implementation includes:
+
+- **Container Format**: MKV (Matroska) container detection
+- **Video Streams**: Support for multiple video codecs (H.264, H.265/HEVC, VP9, AV1, etc.)
+- **Audio Streams**: Support for multiple audio codecs (AAC, MP3, Vorbis, FLAC, DTS, AC3, etc.)
+- **Subtitle Tracks**: Detection and listing of embedded subtitle tracks
+- **Chapter Information**: Chapter markers and timestamps
+- **Multiple Streams**: Ability to display metadata for each video/audio track separately
+
+### Implementation Notes for MKV
+- MKV metadata is extracted using `libmatroska` or `libebml` libraries
+- Multiple tracks are enumerated and displayed in the metadata panel
+- Track selection allows viewing detailed info for specific video/audio streams
+- Chapter list shows start time, duration, and chapter names
