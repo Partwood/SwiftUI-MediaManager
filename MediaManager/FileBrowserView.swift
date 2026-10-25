@@ -59,7 +59,11 @@ struct FileBrowserView: View {
                .width(min: 200, ideal: 300)
                
                TableColumn("Type", value: \.type)
+
+               TableColumn("Content Type", value: \.formattedContentType)
                
+               TableColumn("Duration", value: \.formattedDuration)
+
                TableColumn("Size", value: \.size) { file in
                   Text(file.formattedSize)
                   // Right-align numeric sizes for better table aesthetics
@@ -140,7 +144,8 @@ struct FileBrowserView: View {
       defer { securityRoot.stopAccessingSecurityScopedResource() }
       
        do {
-          let result = try FileSystem(securityRoot).listDirectory(at: url.path)
+          let fileSystem = FileSystem(securityRoot)
+          let result = try fileSystem.listDirectory(at: url.path)
           
           items = result.map { item in
              let fileType: String
@@ -158,11 +163,30 @@ struct FileBrowserView: View {
                 fileType = ""
              }
              
-             return FileItem(url: item.url,name: item.name, isDirectory: item.isDirectory, path: currentPath + "/" + item.name, size: item.attributes?.fileSize ?? 0, type: fileType, creationDate: nil, modifiedDate: nil)
+             let contentType = fileSystem.identifyFileType(at: item.url)
+             
+             let durationInSeconds: Double?
+             if ( contentType == .mkv ) {
+                do {
+                   let mkvParser = try DirectMKVParser(fileURL: item.url)
+                   if let metadata = mkvParser.parseContent() {
+                      durationInSeconds = metadata.durationInSeconds
+                   } else {
+                      durationInSeconds = nil
+                   }
+                } catch {
+                   logError(error)
+                   durationInSeconds = nil
+                }
+             } else {
+                durationInSeconds = nil
+             }
+             
+             return FileItem(url: item.url,name: item.name, isDirectory: item.isDirectory, path: currentPath + "/" + item.name, size: item.attributes?.fileSize ?? 0, type: fileType, creationDate: nil, modifiedDate: nil, contentType: contentType, durationInSeconds: durationInSeconds)
           }
           
           if ( url != securityRoot ) {
-             items.insert(FileItem(url: url.deletingLastPathComponent(),name: "..", isDirectory: true, path: "", size: 0, type: "Folder", creationDate: nil, modifiedDate: nil), at: 0)
+             items.insert(FileItem(url: url.deletingLastPathComponent(),name: "..", isDirectory: true, path: "", size: 0, type: "Folder", creationDate: nil, modifiedDate: nil, contentType: .unknown, durationInSeconds: nil), at: 0)
           }
           
           selectedDirectoryName = url.lastPathComponent
@@ -205,10 +229,41 @@ struct FileItem: Identifiable {
    let type: String
    let creationDate: Date?
    let modifiedDate: Date?
+   let contentType: FileSystem.FileContentType
+   let durationInSeconds: Double?
+   
    // Helper to format the byte count into readable sizes (KB, MB, etc.)
    var formattedSize: String {
       if isDirectory { return "--" }
       return ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
+   }
+   
+   var formattedDuration: String {
+      if let durationInSeconds {
+         let hours = Int(durationInSeconds) / 3600
+         let minutes = (Int(durationInSeconds) % 3600) / 60
+         let secs = Int(durationInSeconds) % 60
+         
+         if hours > 0 {
+            return String(format: "%02d:%02d:%02d", hours, minutes, secs)
+         } else {
+            return String(format: "%02d:%02d", minutes, secs)
+         }
+      } else {
+         return "--"
+      }
+   }
+   
+   var formattedContentType: String {
+      switch contentType {
+      case .mkv: return "Matroska (MKV)"
+      case .mp4: return "MPEG-4"
+      case .avi: return "AVI"
+      case .mp3, .wav, .jpeg, .png: return "N/A"
+      case .html: return "HTML"
+      case .text: return "Text"
+      default: return "N/A"
+      }
    }
 }
 

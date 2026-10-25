@@ -38,9 +38,6 @@ class FileMetadataViewModel: ObservableObject {
       } else {
          return .unknown
       }
-      //    var contentType: FileSystem.FileContentType {
-      //        //FileSystem().identifyFileType(at: url)
-      //    }
    }
    
    func extractMetadata(_ url: URL) async throws {
@@ -68,12 +65,9 @@ class FileMetadataViewModel: ObservableObject {
       if ( contentType == .mkv ) {
          fileSystem.accessURL(url, { url in
             if let url {
-               //let reader = MKVMetadataReader(fileURL: url)
-               //reader.extractMetadata()
                do {
                   let parser = try DirectMKVParser(fileURL: url)
-                  //let tags = try parser.extractMetadata()
-                  //debug("tags:\(tags)")
+
                   let metadata = parser.parseContent()
                   debug("duration:\((metadata?.durationInSeconds ?? 0)/60)")
 
@@ -100,21 +94,9 @@ class FileMetadataViewModel: ObservableObject {
             self.extractVideoMetadataSync(url, asset)
          }
       }
-//      asset.load() { _, error in
-//         if let error = error {
-//            //os_log("Error loading asset: %{public}@", log: .default, type: .error, error.localizedDescription)
-//            logError("Error loading asset: %{public}")
-//            return
-//         }
-//         
-//         Task {
-//            await MainActor.run {
-//               self.extractVideoMetadataSync(asset)
-//            }
-//         }
-//      }
    }
-//   private func extractVideoMetadata(_ url: URL, contentType: FileSystem.FileContentType) {
+
+   //   private func extractVideoMetadata(_ url: URL, contentType: FileSystem.FileContentType) {
 //      guard contentType == .mkv || contentType == .mp4 || contentType == .avi else {
 //         return
 //      }
