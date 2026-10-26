@@ -42,6 +42,12 @@ struct FileBrowserView: View {
 
    @State var modifierKeys: ModifierKeys = ModifierKeys(shift: false, option: false, command: false)
    
+   // Cut/Paste functionality
+   @State private var cutPasteViewModel: CutPasteViewModel? = nil
+   @State private var showConflictResolution = false
+   @State private var conflictItem: CutBufferItem? = nil
+   @State private var proposedNewFileName: String = ""
+      
    var body: some View {
       VStack(alignment: .leading, spacing: 12) {
          // Header controls
@@ -62,6 +68,12 @@ struct FileBrowserView: View {
                   .font(.caption)
                   .foregroundColor(.secondary)
                   .padding(.leading, 8)
+            }
+            
+            // Cut/Paste Controls
+            if let viewModel = cutPasteViewModel {
+               CutPasteControls(viewModel: viewModel, selectedFileIDs: $selectedFileIDs, currentPath: $currentPath, fileBrowserView: self)
+                  .padding(.horizontal)
             }
          }
          .padding([.horizontal, .top])
@@ -115,7 +127,20 @@ struct FileBrowserView: View {
                }
             }
          }
-      }
+            // Show conflict resolution dialog
+            if showConflictResolution, let item = conflictItem {
+                ConflictResolutionView(viewModel: cutPasteViewModel!, existingFileName: item.file.name, proposedNewFileName: proposedNewFileName)
+                    .frame(width: 400, height: 350)
+            }
+            
+            // Cut/Paste Progress View
+            if let viewModel = cutPasteViewModel {
+                if viewModel.isPasteInProgress || viewModel.pasteComplete {
+                    PasteProgressView(viewModel: viewModel)
+                        .padding()
+                }
+            }
+                  }
       // 2. Attach the native file/folder picker modifier
       .fileImporter(
          isPresented: $isShowingFolderPicker,
@@ -222,6 +247,15 @@ struct FileBrowserView: View {
        }
     }
     
+    // Initialize Cut/Paste ViewModel
+    func initializeCutPasteViewModel() {
+       if selectedFiles.isEmpty {
+          cutPasteViewModel = nil
+       } else if ( cutPasteViewModel == nil ) {
+          cutPasteViewModel = CutPasteViewModel(rootDirectoryURL)
+       }
+    }
+       
     // Handle file selection changes to update metadata
     func handleFileSelectionChanged() {
        // 1. We must authorize access using the user-selected ROOT directory
@@ -261,7 +295,54 @@ struct FileBrowserView: View {
        else {
           selectedFileID = nil
        }
-    }    
+       
+       initializeCutPasteViewModel()
+    }
+
+    // Handle cut operation
+    func handleCut() {
+        guard !selectedFileIDs.isEmpty else { return }
+        let selectedFiles = items.filter { selectedFileIDs.contains($0.id) }
+        cutPasteViewModel?.cut(files: selectedFiles)
+    }
+    
+    // Handle paste operation
+    func handlePaste() {
+        guard let viewModel = cutPasteViewModel, !viewModel.cutBuffer.isEmpty else { return }
+        
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.title = "Select Paste Destination"
+        
+        panel.begin { response in
+            if response == .OK, let url = panel.url {
+                viewModel.startPaste(at: url.path)
+            }
+        }
+    }
+    
+    // Handle conflict resolution
+    func handleConflict(_ resolution: ConflictResolution) {
+        if let item = conflictItem {
+            switch resolution {
+            case .replace:
+                // Replace existing file (handled in viewModel)
+                break
+            case .keepBoth:
+                // Keep both - the viewModel already renamed the file
+                break
+            case .skip:
+                // Skip this file - mark it as cancelled
+                //item.isCancelled = true
+                break
+            }
+        }
+        showConflictResolution = false
+        conflictItem = nil
+        proposedNewFileName = ""
+    }
 }
 
 struct FileItem: Identifiable {
@@ -333,5 +414,14 @@ extension View {
                }
             }
          }
+   }
+}
+
+// MARK: - FileBrowserView Extension
+
+extension FileBrowserView {
+   func getSelectedFiles() -> [FileItem]? {
+      guard !selectedFileIDs.isEmpty else { return nil }
+      return items.filter { selectedFileIDs.contains($0.id) }
    }
 }
