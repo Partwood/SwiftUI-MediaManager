@@ -164,9 +164,13 @@ class DirectMKVParser {
       let start = titleRange.upperBound
       let vint = parseVINT(from: searchArea, at: start)
       let valueStart = start + vint.bytesRead
-      let valueData = searchArea.subdata(in: valueStart..<(valueStart + vint.valueSize))
-      
-      return String(data:valueData,encoding: .utf8)
+      if ( valueStart < data.count && (valueStart + vint.valueSize) < data.count ) {
+         let valueData = searchArea.subdata(in: valueStart..<(valueStart + vint.valueSize))
+         
+         return String(data:valueData,encoding: .utf8)
+      } else {
+         return nil
+      }
    }
 
    private func extractWritingApp(from data: Data) -> String? {

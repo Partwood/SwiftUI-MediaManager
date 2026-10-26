@@ -31,7 +31,14 @@ class FileMetadataViewModel: ObservableObject {
          }
       }
    }
-
+   
+   // Method to retrieve a file by its ID (needed for multiselect)
+   func file(for fileID: FileItem.ID) -> FileItem? {
+       // This will be called from the view which has access to the items array
+       // For now, return nil - the view should handle this differently
+       return nil
+   }
+   
    func contentType(file: FileItem?) -> FileSystem.FileContentType {
       if let file {
          return fileSystem.identifyFileType(at: file.url)

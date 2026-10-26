@@ -3,8 +3,9 @@ import AVFoundation
 import ImageIO
 
 struct FileMetadataView: View {
-    @ObservedObject var viewModel: FileMetadataViewModel
-    @Binding var selectedFileID: FileItem.ID?
+   @ObservedObject var viewModel: FileMetadataViewModel
+   @Binding var selectedFileID: FileItem.ID?
+   @Binding var showMetadataPanel: Bool
     
     var body: some View {
         NavigationStack {
@@ -285,7 +286,8 @@ struct FileMetadataView: View {
     }
     
     private func dismiss() {
-        selectedFileID = nil
+       selectedFileID = nil
+       showMetadataPanel = false
     }
     
     private func showInFinder(_ url: URL) {

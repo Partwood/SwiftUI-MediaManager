@@ -6,7 +6,12 @@
          contextName = "closure #2 in View.contextClickModifier(file:action:):FileBrowserView.swift">
       </ContextState>
       <ContextState
-         contextName = "FileBrowserView.handleFileSelectionChanged():FileBrowserView.swift">
+         contextName = "DirectMKVParser.extractTitle(from:):Markov.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "data.count">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
          contextName = "FileSystem.identifyFileType(at:):FileSystem.swift">
@@ -18,6 +23,9 @@
                value = "(byteArray[0..&lt;4] == ArraySlice(mkvSignature))">
             </PersistentString>
          </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "FileBrowserView.handleFileSelectionChanged():FileBrowserView.swift">
       </ContextState>
    </ContextStates>
 </VariablesViewState>

@@ -1,11 +1,18 @@
 import SwiftUI
-//import AVFoundation
-//import Combine
-//import UniformTypeIdentifiers
-//import os.log
-//import SwiftUI
 import Foundation
 import UniformTypeIdentifiers
+
+struct ModifierKeys {
+   var shift: Bool
+   var option: Bool
+   var command: Bool
+   
+   var none: Bool {
+      get {
+         return (!shift && !option && !command)
+      }
+   }
+}
 
 // Add columns for attributes in the table view
 // Implement sorting functionality
@@ -22,11 +29,19 @@ struct FileBrowserView: View {
    @State private var sortOrder = [KeyPathComparator(\FileItem.name)]
    @State private var isShowingFolderPicker = false
    @State private var selectedDirectoryName: String = "No directory selected"
+   @State private var isMultiselectEnabled = false   // For multiselect support
+   @State private var selectedFiles: [FileItem] = []
+
    @State var selectedFileID: FileItem.ID? = nil
+   @State var selectedFileIDs: Set<FileItem.ID> = []
 
    // NEW: Persist the exact security-scoped URL the user initially chose
    @State private var rootDirectoryURL: URL? = nil
+   
+   private var KrausValue: CGFloat { .infinity }
 
+   @State var modifierKeys: ModifierKeys = ModifierKeys(shift: false, option: false, command: false)
+   
    var body: some View {
       VStack(alignment: .leading, spacing: 12) {
          // Header controls
@@ -40,12 +55,20 @@ struct FileBrowserView: View {
                .font(.callout)
                .foregroundColor(.secondary)
                .lineLimit(1)
+            
+            // Multiselect indicator
+            if selectedFileIDs.count > 0 {
+               Text("\(selectedFileIDs.count) selected")
+                  .font(.caption)
+                  .foregroundColor(.secondary)
+                  .padding(.leading, 8)
+            }
          }
          .padding([.horizontal, .top])
          
          HStack {
             // The Table to display the directory contents
-            Table(items, selection: $selectedFileID, sortOrder: $sortOrder) {
+            Table(items, selection: $selectedFileIDs, sortOrder: $sortOrder) {
                TableColumn("Name", value: \.name) { file in
                   HStack {
                      Image(systemName: file.isDirectory ? "folder.fill" : "doc.fill")
@@ -54,13 +77,18 @@ struct FileBrowserView: View {
                   }
                   // Handle double-click natively on the cell view
                   .contextClickModifier(outerView: self,file: file, action: navigateTo)
-                  
+                  .onModifierKeysChanged(mask: [.option,.shift]) { old, new in
+                     let optionKey = new.contains(.option)
+                     let shiftKey = new.contains(.shift)
+                     let commandKey = new.contains(.command)
+                     self.modifierKeys = ModifierKeys(shift: shiftKey, option: optionKey, command: commandKey)
+                  }
                }
                .width(min: 200, ideal: 300)
                
-               TableColumn("Type", value: \.type)
+               //TableColumn("Type", value: \.type)
 
-               TableColumn("Content Type", value: \.formattedContentType)
+               TableColumn("Type", value: \.formattedContentType)
                
                TableColumn("Duration", value: \.formattedDuration)
 
@@ -73,19 +101,36 @@ struct FileBrowserView: View {
                
                TableColumn("Path", value: \.path)
             }
-            .onChange(of: sortOrder) { newOrder in
+            .onChange(of: sortOrder, { _,newOrder in
                items.sort(using: newOrder)
-            }
+            })
             // Observe selection changes
-            .onChange(of: selectedFileID) { newValue in
-               handleFileSelectionChanged()
+//            .onChange(of: selectedFileID) { _,newValue in
+//               //handleFileSelectionChanged()
+//               showMetadataPanel = (selectedFileID == nil)
+//            }
+            .onChange(of: selectedFileIDs) { _,newSelection in
+               handleMultiselectChanges()
+               
+//               // If multiple files selected, update metadata view for all
+//               if newSelection.count > 0 {
+//                  showMetadataPanel = true
+////                  if let viewModel = metadataViewModel {
+////                     let selection = newSelection.compactMap {
+////                        items.first(where: { $0.id == $0 })
+////                     }
+////                     viewModel.selectedFiles = selection
+////                  }
+//               }
             }
-            
+
             // File Metadata Side Panel
             if showMetadataPanel, let viewModel = metadataViewModel {
-               FileMetadataView(viewModel: viewModel, selectedFileID: $selectedFileID)
-                  .frame(width: 400)
-                  .transition(.move(edge: .trailing).combined(with: .opacity))
+               if let _ = selectedFileIDs.first {
+                  FileMetadataView(viewModel: viewModel, selectedFileID: $selectedFileID, showMetadataPanel: $showMetadataPanel)
+                     .frame(width: 400)
+                     .transition(.move(edge: .trailing).combined(with: .opacity))
+               }
             }
          }
       }
@@ -216,7 +261,25 @@ struct FileBrowserView: View {
             metadataViewModel = nil
         }
     }
-    
+   
+    // Handle multiselect changes
+    func handleMultiselectChanges() {
+       // Update selectedFiles array based on selectedFileIDs
+       selectedFiles = items.filter { selectedFileIDs.contains($0.id) }
+       
+       // If multiple files are selected, clear the single selection
+       if selectedFileIDs.count > 1 {
+          selectedFileID = nil
+       }
+       // If one file is selected, set it as the single selection
+       else if selectedFileIDs.count == 1 {
+          selectedFileID = selectedFileIDs.first
+          handleFileSelectionChanged()
+       }
+       else {
+          selectedFileID = nil
+       }
+    }    
 }
 
 struct FileItem: Identifiable {
@@ -262,7 +325,12 @@ struct FileItem: Identifiable {
       case .mp3, .wav, .jpeg, .png: return "N/A"
       case .html: return "HTML"
       case .text: return "Text"
-      default: return "N/A"
+      default:
+         if type == "Folder" {
+            return type
+         } else {
+            return "N/A"
+         }
       }
    }
 }
@@ -276,16 +344,28 @@ struct UIFileAttributes {
 
 extension View {
    func contextClickModifier(outerView: FileBrowserView,file: FileItem, action: @escaping (FileItem) -> Void) -> some View {
+      // Making the whole cell area interactive instead of just the text bounds
       self
          .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-      // Making the whole cell area interactive instead of just the text bounds
          .contentShape(Rectangle())
          .onTapGesture(count: 2) {
             action(file)
          }
          .onTapGesture(count: 1) {
-            outerView.selectedFileID = file.id
-            outerView.handleFileSelectionChanged()
+            let existed = outerView.selectedFileIDs.contains(file.id)
+            if outerView.modifierKeys.none {
+               outerView.selectedFileIDs.removeAll()
+               if ( !existed ) {
+                  outerView.selectedFileIDs.insert(file.id)
+               }
+            } else {
+               // Should do a range if using shift
+               if ( !existed ) {
+                  outerView.selectedFileIDs.insert(file.id)
+               } else {
+                  outerView.selectedFileIDs.remove(file.id)
+               }
+            }
          }
    }
 }
