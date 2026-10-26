@@ -99,6 +99,23 @@ extension FileSystem {
       case text
       case wav
       case unknown
+      
+      var description: String {
+         switch self {
+            case .mkv: return "MKV Video"
+            case .mp4: return "MP4 Video"
+            case .avi: return "AVI Video"
+            case .jpeg: return "JPEG Image"
+            case .png: return "PNG Image"
+            case .mp3: return "MP3 Audio"
+            case .wav: return "WAV Audio"
+            case .html: return "HTML Document"
+            case .markdown: return "Markdown Document"
+            case .text: return "Text File"
+            case .binary: return "Binary File"
+            default: return "Unknown Type"
+         }
+      }
    }
    
    func accessURL(_ url: URL,_ operation: @escaping (_ url: URL?)->Void) {

@@ -300,28 +300,12 @@ struct FileItem: Identifiable {
    }
    
    var formattedContentType: String {
-      switch contentType {
-      case .mkv: return "Matroska (MKV)"
-      case .mp4: return "MPEG-4"
-      case .avi: return "AVI"
-      case .mp3, .wav, .jpeg, .png: return "N/A"
-      case .html: return "HTML"
-      case .text: return "Text"
-      default:
-         if type == "Folder" {
-            return type
-         } else {
-            return "N/A"
-         }
+      if type == "Folder" {
+         return type
+      } else {
+         return contentType.description
       }
    }
-}
-
-struct UIFileAttributes {
-   let name: String
-   let type: String
-   let size: String
-   let modifiedDate: String
 }
 
 extension View {
