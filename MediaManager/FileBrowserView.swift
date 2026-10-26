@@ -85,16 +85,14 @@ struct FileBrowserView: View {
                   }
                }
                .width(min: 200, ideal: 300)
-               
-               //TableColumn("Type", value: \.type)
 
                TableColumn("Type", value: \.formattedContentType)
                
                TableColumn("Duration", value: \.formattedDuration)
 
                TableColumn("Size", value: \.size) { file in
-                  Text(file.formattedSize)
                   // Right-align numeric sizes for better table aesthetics
+                  Text(file.formattedSize)
                      .frame(maxWidth: .infinity, alignment: .trailing)
                }
                .width(100)
@@ -104,24 +102,8 @@ struct FileBrowserView: View {
             .onChange(of: sortOrder, { _,newOrder in
                items.sort(using: newOrder)
             })
-            // Observe selection changes
-//            .onChange(of: selectedFileID) { _,newValue in
-//               //handleFileSelectionChanged()
-//               showMetadataPanel = (selectedFileID == nil)
-//            }
             .onChange(of: selectedFileIDs) { _,newSelection in
                handleMultiselectChanges()
-               
-//               // If multiple files selected, update metadata view for all
-//               if newSelection.count > 0 {
-//                  showMetadataPanel = true
-////                  if let viewModel = metadataViewModel {
-////                     let selection = newSelection.compactMap {
-////                        items.first(where: { $0.id == $0 })
-////                     }
-////                     viewModel.selectedFiles = selection
-////                  }
-//               }
             }
 
             // File Metadata Side Panel
