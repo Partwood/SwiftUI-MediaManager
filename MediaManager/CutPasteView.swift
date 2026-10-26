@@ -195,7 +195,7 @@ struct CutPasteControls: View {
                 .foregroundColor(.primary)
             }
             .buttonStyle(.bordered)
-            .disabled(viewModel.cutBuffer.isEmpty)
+            //.disabled(viewModel.cutBuffer.isEmpty)
             .keyboardShortcut(.delete, modifiers: [.command])
             
             // Paste button
