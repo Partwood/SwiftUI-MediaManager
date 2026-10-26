@@ -182,7 +182,7 @@ struct CutPasteControls: View {
     let fileBrowserView: FileBrowserView
     
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 4) {
             // Cut button
             Button(action: {
                 handleCut()
@@ -243,12 +243,12 @@ struct CutPasteControls: View {
                 .cornerRadius(4)
             }
         }
-        .padding()
+        .padding(0)
         .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
     }
     
     private func handleCut() {
+       debug("Cut")
         if let selectedFiles = fileBrowserView.getSelectedFiles() {
             viewModel.cut(files: selectedFiles)
         }

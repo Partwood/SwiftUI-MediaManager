@@ -31,6 +31,7 @@ class CutPasteViewModel: ObservableObject {
     
     /// Cut the selected files into the cut buffer
     func cut(files: [FileItem]) {
+       debug("Cut")
         cutBuffer.removeAll()
         pasteResults.removeAll()
         pasteSuccessCount = 0

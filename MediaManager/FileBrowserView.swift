@@ -73,7 +73,7 @@ struct FileBrowserView: View {
             // Cut/Paste Controls
             if let viewModel = cutPasteViewModel {
                CutPasteControls(viewModel: viewModel, selectedFileIDs: $selectedFileIDs, currentPath: $currentPath, fileBrowserView: self)
-                  .padding(.horizontal)
+                  //.padding([.horizontal, .top])
             }
          }
          .padding([.horizontal, .top])
