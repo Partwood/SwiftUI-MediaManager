@@ -128,6 +128,10 @@ struct FileBrowserView: View {
             }
             .onChange(of: sortOrder, { _,newOrder in
                items.sort(using: newOrder)
+               if let dotDotIndex = items.firstIndex(where: { $0.name == ".." }) {
+                  let dotDotItem = items.remove(at: dotDotIndex)
+                  items.insert(dotDotItem, at: 0)
+               }
             })
             .onChange(of: selectedFileIDs) { _,newSelection in
                handleMultiselectChanges()
