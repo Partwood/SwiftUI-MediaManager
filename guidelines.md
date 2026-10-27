@@ -5,3 +5,4 @@
 - Follow the existing project structure.
 - Utilize MCP functions for performing operations.
 - Verify arguments for each MCP tool based on the operation.
+- Architecture details are documented in `docs/architecture.md`.
