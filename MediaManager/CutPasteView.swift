@@ -176,11 +176,12 @@ struct PasteProgressView: View {
 
 /// Main cut/paste control view
 struct CutPasteControls: View {
-    @ObservedObject var viewModel: CutPasteViewModel
-    @Binding var selectedFileIDs: Set<FileItem.ID>
-    @Binding var currentPath: String
-    let fileBrowserView: FileBrowserView
-    
+   @ObservedObject var viewModel: CutPasteViewModel
+   @Binding var selectedFileIDs: Set<FileItem.ID>
+   @Binding var currentPath: String
+   @Binding var showPasteProgress: Bool
+   let fileBrowserView: FileBrowserView
+
     var body: some View {
         HStack(spacing: 4) {
             // Cut button
@@ -245,6 +246,12 @@ struct CutPasteControls: View {
         }
         .padding(0)
         .background(Color(NSColor.controlBackgroundColor))
+        .onChange(of: viewModel.pasteComplete, {
+           showPasteProgress = (viewModel.pasteComplete || viewModel.isPasteInProgress)
+        })
+        .onChange(of: viewModel.isPasteInProgress, {
+           showPasteProgress = (viewModel.pasteComplete || viewModel.isPasteInProgress)
+        })
     }
     
     private func handleCut() {
@@ -257,16 +264,17 @@ struct CutPasteControls: View {
     private func handlePaste() {
         guard !viewModel.cutBuffer.isEmpty else { return }
         
-        let panel = NSOpenPanel()
-        panel.canChooseFiles = false
-        panel.canChooseDirectories = true
-        panel.allowsMultipleSelection = false
-        panel.title = "Select Paste Destination"
-        
-        panel.begin { response in
-            if response == .OK, let url = panel.url {
-                viewModel.startPaste(at: url.path)
-            }
-        }
+       viewModel.startPaste(at: currentPath)
+//        let panel = NSOpenPanel()
+//        panel.canChooseFiles = false
+//        panel.canChooseDirectories = true
+//        panel.allowsMultipleSelection = false
+//        panel.title = "Select Paste Destination"
+//        
+//        panel.begin { response in
+//            if response == .OK, let url = panel.url {
+//                viewModel.startPaste(at: url.path)
+//            }
+//        }
     }
 }

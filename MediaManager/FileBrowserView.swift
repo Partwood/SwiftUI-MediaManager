@@ -15,7 +15,7 @@ struct ModifierKeys {
 }
 
 // Add columns for attributes in the table view
-// Implement sorting functionality
+// Implementsorting functionality
 // Add this to the top of the file
 
 struct FileBrowserView: View {
@@ -25,6 +25,9 @@ struct FileBrowserView: View {
 
    @State private var showMetadataPanel = false
    @State private var metadataViewModel: FileMetadataViewModel? = nil
+
+   // New Folder functionality
+   @State private var showNewFolderDialog = false
    
    @State private var sortOrder = [KeyPathComparator(\FileItem.name)]
    @State private var isShowingFolderPicker = false
@@ -35,7 +38,7 @@ struct FileBrowserView: View {
    @State var selectedFileID: FileItem.ID? = nil
    @State var selectedFileIDs: Set<FileItem.ID> = []
 
-   // NEW: Persist the exact security-scoped URL the user initially chose
+   // Persist the exact security-scoped URL the user initially chose
    @State private var rootDirectoryURL: URL? = nil
    
    private var KrausValue: CGFloat { .infinity }
@@ -47,6 +50,7 @@ struct FileBrowserView: View {
    @State private var showConflictResolution = false
    @State private var conflictItem: CutBufferItem? = nil
    @State private var proposedNewFileName: String = ""
+   @State var showPasteProgress: Bool = false
       
    var body: some View {
       VStack(alignment: .leading, spacing: 12) {
@@ -72,8 +76,11 @@ struct FileBrowserView: View {
             
             // Cut/Paste Controls
             if let viewModel = cutPasteViewModel {
-               CutPasteControls(viewModel: viewModel, selectedFileIDs: $selectedFileIDs, currentPath: $currentPath, fileBrowserView: self)
-                  //.padding([.horizontal, .top])
+               CutPasteControls(viewModel: viewModel,
+                                selectedFileIDs: $selectedFileIDs,
+                                currentPath: $currentPath,
+                                showPasteProgress: $showPasteProgress,
+                                fileBrowserView: self)
             }
          }
          .padding([.horizontal, .top])
@@ -89,6 +96,14 @@ struct FileBrowserView: View {
                   }
                   // Handle double-click natively on the cell view
                   .contextClickModifier(outerView: self,file: file, action: navigateTo)
+                  // Add context menu for right-click
+                  .contextMenu {
+                      Button(action: {
+                          showNewFolderDialog = true
+                      }) {
+                          Label("New Folder", systemImage: "folder.badge.plus")
+                      }
+                  }
                   .onModifierKeysChanged(mask: [.option,.shift]) { old, new in
                      let optionKey = new.contains(.option)
                      let shiftKey = new.contains(.shift)
@@ -117,6 +132,11 @@ struct FileBrowserView: View {
             .onChange(of: selectedFileIDs) { _,newSelection in
                handleMultiselectChanges()
             }
+            .onChange(of: showNewFolderDialog) {
+               if ( !showNewFolderDialog ) {
+                  loadDirectoryContents(at: URL(fileURLWithPath: currentPath))
+               }
+            }
 
             // File Metadata Side Panel
             if showMetadataPanel, let viewModel = metadataViewModel {
@@ -127,21 +147,28 @@ struct FileBrowserView: View {
                }
             }
          }
-            // Show conflict resolution dialog
-            if showConflictResolution, let item = conflictItem {
-                ConflictResolutionView(viewModel: cutPasteViewModel!, existingFileName: item.file.name, proposedNewFileName: proposedNewFileName)
-                    .frame(width: 400, height: 350)
-            }
-            
-            // Cut/Paste Progress View
+         
+         // Show conflict resolution dialog
+         if showConflictResolution, let item = conflictItem {
+            ConflictResolutionView(viewModel: cutPasteViewModel!, existingFileName: item.file.name, proposedNewFileName: proposedNewFileName)
+               .frame(width: 400, height: 350)
+         }
+         // Show new folder dialog
+         if showNewFolderDialog {
+            NewFolderView(showNewFolderDialog: $showNewFolderDialog,
+                          rootDirectoryURL: $rootDirectoryURL,
+                          currentPath: currentPath)
+         }
+         
+         // Cut/Paste Progress View
+         if ( showPasteProgress ) {
             if let viewModel = cutPasteViewModel {
-                if viewModel.isPasteInProgress || viewModel.pasteComplete {
-                    PasteProgressView(viewModel: viewModel)
-                        .padding()
-                }
+               PasteProgressView(viewModel: viewModel)
+                  .padding()
             }
-                  }
-      // 2. Attach the native file/folder picker modifier
+         }
+      }
+      // Attach the native file/folder picker modifier
       .fileImporter(
          isPresented: $isShowingFolderPicker,
          allowedContentTypes: [.folder], // Restrict picker to folders only
@@ -150,6 +177,7 @@ struct FileBrowserView: View {
          switch result {
          case .success(let urls):
             if let url = urls.first {
+               self.currentPath = url.filePath
                self.rootDirectoryURL = url
                loadDirectoryContents(at: url)
             }
@@ -159,34 +187,13 @@ struct FileBrowserView: View {
       }
     }
    
-   // NEW: Handles entering a directory if double-clicked
+   // Handles entering a directory if double-clicked
    private func navigateTo(file: FileItem) {
       if file.isDirectory {
          loadDirectoryContents(at: file.url)
       }
    }
    
-    func selectDirectory() {
-       let panel = NSOpenPanel()
-       panel.canChooseFiles = false
-       panel.canChooseDirectories = true
-       panel.allowsMultipleSelection = false
-       if panel.runModal() == .OK {
-          if let url = panel.url {
-             currentPath = url.path
-             initialPath = currentPath
-             loadDirectoryContents(at: url)
-          }
-       }
-    }
-
-   func goBack() {
-      let url = URL(fileURLWithPath: currentPath)
-      let parentURL = url.deletingLastPathComponent()
-      currentPath = parentURL.path
-      loadDirectoryContents(at: parentURL)
-   }
-
    func loadDirectoryContents(at url: URL) {
       // 1. We must authorize access using the user-selected ROOT directory
       guard let securityRoot = rootDirectoryURL else { return }
@@ -213,8 +220,8 @@ struct FileBrowserView: View {
                 
              } else {
                 fileType = ""
-             }
-             
+             }             
+
              let contentType = fileSystem.identifyFileType(at: item.url)
              
              let durationInSeconds: Double?
@@ -242,6 +249,7 @@ struct FileBrowserView: View {
           }
           
           selectedDirectoryName = url.lastPathComponent
+          currentPath = url.filePath
        } catch {
           logError(error)
        }
@@ -298,95 +306,6 @@ struct FileBrowserView: View {
        
        initializeCutPasteViewModel()
     }
-
-    // Handle cut operation
-    func handleCut() {
-        guard !selectedFileIDs.isEmpty else { return }
-        let selectedFiles = items.filter { selectedFileIDs.contains($0.id) }
-        cutPasteViewModel?.cut(files: selectedFiles)
-    }
-    
-    // Handle paste operation
-    func handlePaste() {
-        guard let viewModel = cutPasteViewModel, !viewModel.cutBuffer.isEmpty else { return }
-        
-        let panel = NSOpenPanel()
-        panel.canChooseFiles = false
-        panel.canChooseDirectories = true
-        panel.allowsMultipleSelection = false
-        panel.title = "Select Paste Destination"
-        
-        panel.begin { response in
-            if response == .OK, let url = panel.url {
-                viewModel.startPaste(at: url.path)
-            }
-        }
-    }
-    
-    // Handle conflict resolution
-    func handleConflict(_ resolution: ConflictResolution) {
-        if let item = conflictItem {
-            switch resolution {
-            case .replace:
-                // Replace existing file (handled in viewModel)
-                break
-            case .keepBoth:
-                // Keep both - the viewModel already renamed the file
-                break
-            case .skip:
-                // Skip this file - mark it as cancelled
-                //item.isCancelled = true
-                break
-            }
-        }
-        showConflictResolution = false
-        conflictItem = nil
-        proposedNewFileName = ""
-    }
-}
-
-struct FileItem: Identifiable {
-   let id = UUID()
-   let url: URL
-   let name: String
-   let isDirectory: Bool
-   let path: String
-   let size: Int64
-   let type: String
-   let creationDate: Date?
-   let modifiedDate: Date?
-   let contentType: FileSystem.FileContentType
-   let durationInSeconds: Double?
-   
-   // Helper to format the byte count into readable sizes (KB, MB, etc.)
-   var formattedSize: String {
-      if isDirectory { return "--" }
-      return ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
-   }
-   
-   var formattedDuration: String {
-      if let durationInSeconds {
-         let hours = Int(durationInSeconds) / 3600
-         let minutes = (Int(durationInSeconds) % 3600) / 60
-         let secs = Int(durationInSeconds) % 60
-         
-         if hours > 0 {
-            return String(format: "%02d:%02d:%02d", hours, minutes, secs)
-         } else {
-            return String(format: "%02d:%02d", minutes, secs)
-         }
-      } else {
-         return "--"
-      }
-   }
-   
-   var formattedContentType: String {
-      if type == "Folder" {
-         return type
-      } else {
-         return contentType.description
-      }
-   }
 }
 
 extension View {

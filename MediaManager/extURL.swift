@@ -54,18 +54,18 @@ extension URL {
    }
    
    public
-   func getFilePath() -> String {
-      return URL.getFilePath(self.path())
+   var filePath: String {
+      return URL.getFilePath(self.path(percentEncoded: false))
    }
    
    public
    func isExisting() -> Bool {
-      return FileManager.default.fileExists(atPath: self.getFilePath())
+      return FileManager.default.fileExists(atPath: self.filePath)
    }
    
    public
    func isExistingFile() throws -> Bool {
-      let urlExists = FileManager.default.fileExists(atPath: self.getFilePath())
+      let urlExists = FileManager.default.fileExists(atPath: self.filePath)
       if ( !urlExists ) { return false }
       
       return try !isDirectory()
@@ -73,7 +73,7 @@ extension URL {
    
    public
    func isExistingDirectory() throws -> Bool {
-      let urlExists = FileManager.default.fileExists(atPath: self.getFilePath())
+      let urlExists = FileManager.default.fileExists(atPath: self.filePath)
       if ( !urlExists ) { return false }
       
       return try isDirectory()

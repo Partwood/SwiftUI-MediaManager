@@ -154,12 +154,19 @@ class CutPasteViewModel: ObservableObject {
         }
         
         // No conflict, just move the file
-        do {
-            try FileManager.default.moveItem(at: item.originalPath, to: destinationFileURL)
-            return .success
-        } catch {
-            return .failed(error)
-        }
+       var result: PasteResult = .skipped
+        self.fileSystem.accessURL(item.originalPath) { url in
+              if let _ = url {
+                 do {
+                    try FileManager.default.moveItem(at: item.originalPath, to: destinationFileURL)
+                    result = .success
+                 } catch {
+                    logError(error)
+                    result = .failed(error)
+                 }
+              }
+           }
+       return result
     }
     
     /// Request user to resolve a naming conflict
