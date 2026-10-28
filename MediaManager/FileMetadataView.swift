@@ -52,65 +52,7 @@ struct FileMetadataView: View {
                 Divider()
                 
                 // Basic File Information
-                Section {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Label("Name", systemImage: "text.badge.plus")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        Text(viewModel.file?.name ?? "N/A")
-                            .font(.body)
-                            .foregroundColor(.primary)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Label("Type", systemImage: "square.grid.3x3")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        Text(getFileTypeDescription(viewModel.file?.url))
-                            .font(.body)
-                            .foregroundColor(.primary)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Label("Size", systemImage: "arrow.up.left.and.arrow.down.right.square")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        Text(viewModel.file?.formattedSize ?? "N/A")
-                            .font(.body)
-                            .foregroundColor(.primary)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Label("Path", systemImage: "ellipsis.rectangle")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        Text(viewModel.file?.path ?? "N/A")
-                            .font(.body)
-                            .foregroundColor(.primary)
-                            .lineLimit(2)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Label("Modified", systemImage: "clock")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        Text(formatDate(viewModel.file?.modifiedDate))
-                            .font(.body)
-                            .foregroundColor(.primary)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Label("Created", systemImage: "calendar")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        Text(formatDate(viewModel.file?.creationDate))
-                            .font(.body)
-                            .foregroundColor(.primary)
-                    }
-                } header: {
-                    Text("Basic Information")
-                        .font(.headline)
-                }
+               BasicInformation(viewModel: viewModel)
                 
                 // File-Specific Metadata
                let contentType = viewModel.contentType(file: viewModel.file)
@@ -178,20 +120,86 @@ struct FileMetadataView: View {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(metadataText, forType: .string)
     }
-    
-    private func getFileTypeDescription(_ url: URL?) -> String {
-        guard let url = url else { return "N/A" }
-       let contentType = viewModel.fileSystem.identifyFileType(at: url)
-       return contentType.description
-    }
-    
-    private func formatDate(_ date: Date?) -> String {
-        guard let date = date else { return "N/A" }
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
-    }
+}
+
+struct BasicInformation: View {
+   @State var viewModel: FileMetadataViewModel
+
+   private func formatDate(_ date: Date?) -> String {
+      guard let date = date else { return "N/A" }
+      let formatter = DateFormatter()
+      formatter.dateStyle = .medium
+      formatter.timeStyle = .short
+      return formatter.string(from: date)
+   }
+
+   private func getFileTypeDescription(_ url: URL?) -> String {
+      guard let url = url else { return "N/A" }
+      let contentType = viewModel.fileSystem.identifyFileType(at: url)
+      return contentType.description
+   }
+
+   var body: some View {
+      Section {
+         VStack(alignment: .leading, spacing: 4) {
+            Label("Name", systemImage: "text.badge.plus")
+               .font(.subheadline)
+               .foregroundColor(.secondary)
+            Text(viewModel.file?.name ?? "N/A")
+               .font(.body)
+               .foregroundColor(.primary)
+         }
+         
+         VStack(alignment: .leading, spacing: 4) {
+            Label("Type", systemImage: "square.grid.3x3")
+               .font(.subheadline)
+               .foregroundColor(.secondary)
+            Text(getFileTypeDescription(viewModel.file?.url))
+               .font(.body)
+               .foregroundColor(.primary)
+         }
+         
+         VStack(alignment: .leading, spacing: 4) {
+            Label("Size", systemImage: "arrow.up.left.and.arrow.down.right.square")
+               .font(.subheadline)
+               .foregroundColor(.secondary)
+            Text(viewModel.file?.formattedSize ?? "N/A")
+               .font(.body)
+               .foregroundColor(.primary)
+         }
+         
+         VStack(alignment: .leading, spacing: 4) {
+            Label("Path", systemImage: "ellipsis.rectangle")
+               .font(.subheadline)
+               .foregroundColor(.secondary)
+            Text(viewModel.file?.path ?? "N/A")
+               .font(.body)
+               .foregroundColor(.primary)
+               .lineLimit(2)
+         }
+         
+         VStack(alignment: .leading, spacing: 4) {
+            Label("Modified", systemImage: "clock")
+               .font(.subheadline)
+               .foregroundColor(.secondary)
+            Text(formatDate(viewModel.file?.modifiedDate))
+               .font(.body)
+               .foregroundColor(.primary)
+         }
+         
+         VStack(alignment: .leading, spacing: 4) {
+            Label("Created", systemImage: "calendar")
+               .font(.subheadline)
+               .foregroundColor(.secondary)
+            Text(formatDate(viewModel.file?.creationDate))
+               .font(.body)
+               .foregroundColor(.primary)
+         }
+      } header: {
+         Text("Basic Information")
+            .font(.headline)
+      }
+   }
 }
 
 struct VideoInformation: View {
