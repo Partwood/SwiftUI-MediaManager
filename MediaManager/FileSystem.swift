@@ -98,6 +98,8 @@ extension FileSystem {
       case png
       case text
       case wav
+      case xml
+      case nfo
       case unknown
       
       var description: String {
@@ -111,6 +113,8 @@ extension FileSystem {
             case .wav: return "WAV Audio"
             case .html: return "HTML Document"
             case .markdown: return "Markdown Document"
+            case .xml: return "XML File"
+            case .nfo: return "NFO File"
             case .text: return "Text File"
             case .binary: return "Binary File"
             default: return "Unknown Type"
@@ -226,10 +230,23 @@ extension FileSystem {
             if string.hasPrefix("#") || string.hasPrefix("---") {
                return .markdown
             }
+            
             // Check for HTML content
             if string.lowercased().hasPrefix("<html") || string.lowercased().hasPrefix("<!doctype html") {
                return .html
             }
+
+            // Check for XML content (XML declaration or root element)
+            if string.contains("<?xml") || string.contains("<") && string.contains(">") {
+               // Check if it's an NFO file by extension
+               let fileName = url.lastPathComponent.lowercased()
+               if fileName.hasSuffix(".nfo") {
+                  return .nfo
+               }
+               return .xml
+            }
+            
+            // else just text
             return .text
          }
       } catch {

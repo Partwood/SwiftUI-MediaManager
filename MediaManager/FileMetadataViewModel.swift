@@ -9,6 +9,8 @@ class FileMetadataViewModel: ObservableObject {
    @Published var videoMetadata: VideoMetadata?
    @Published var imageMetadata: ImageMetadata?
    @Published var audioMetadata: AudioMetadata?
+   @Published var nfoMetadata: NFOMetadata?
+   @Published var nfoSections: [NFOSection] = []
    @Published var metadataText: String = ""
 
    let fileSystem: FileSystem
@@ -60,10 +62,31 @@ class FileMetadataViewModel: ObservableObject {
       // Extract image metadata
       extractImageMetadata(url, contentType: contentType)
       
+      // Extract NFO metadata
+      extractNFOMetadata(url, contentType: contentType)
+      
       // Generate metadata text
       generateMetadataText()
    }
-
+   
+   private func extractNFOMetadata(_ url: URL, contentType: FileSystem.FileContentType) {
+      guard contentType == .xml || contentType == .nfo else {
+         return
+      }
+      
+      Task {
+         await MainActor.run {
+            do {
+               let results = try NFOParser().parseNFOMetadata(fileSystem, url)
+               self.nfoMetadata = results.metadata
+               self.nfoSections = results.sections
+            } catch {
+               logError(error)
+            }
+         }
+      }
+   }
+   
    private func extractVideoMetadata(_ url: URL, contentType: FileSystem.FileContentType) {
       guard contentType == .mkv || contentType == .mp4 || contentType == .avi else {
          return
@@ -301,10 +324,4 @@ struct AudioMetadata {
    var videoBitrate: Int = 0
    var audioBitrate: Int = 0
    var container: FileAttributeType?
-}
-
-extension FileItem {
-//    var contentType: FileSystem.FileContentType {
-//        //FileSystem().identifyFileType(at: url)
-//    }
 }
