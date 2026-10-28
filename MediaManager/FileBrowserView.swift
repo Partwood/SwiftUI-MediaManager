@@ -85,7 +85,7 @@ struct FileBrowserView: View {
          }
          .padding([.horizontal, .top])
          
-         HStack {
+         HStack(spacing: 0) {
             // The Table to display the directory contents
             Table(items, selection: $selectedFileIDs, sortOrder: $sortOrder) {
                TableColumn("Name", value: \.name) { file in
@@ -143,14 +143,16 @@ struct FileBrowserView: View {
             }
 
             // File Metadata Side Panel
-            if showMetadataPanel, let viewModel = metadataViewModel {
-               if let _ = selectedFileIDs.first {
-                  FileMetadataView(viewModel: viewModel, selectedFileID: $selectedFileID, showMetadataPanel: $showMetadataPanel)
-                     .frame(width: 400)
-                     .transition(.move(edge: .trailing).combined(with: .opacity))
-               }
+            if showMetadataPanel,
+               !selectedFileIDs.isEmpty,
+               let viewModel = metadataViewModel {
+               FileMetadataView(viewModel: viewModel, selectedFileID: $selectedFileID, showMetadataPanel: $showMetadataPanel)
+                  .padding(0)
+                  .frame(width: 400)
+                  .transition(.move(edge: .trailing).combined(with: .opacity))
             }
          }
+         .padding(0)
          
          // Show conflict resolution dialog
          if showConflictResolution, let item = conflictItem {
@@ -282,11 +284,14 @@ struct FileBrowserView: View {
        if let selectedID = selectedFileID, let index = items.firstIndex(where: { $0.id == selectedID }) {
             let selectedFile = items[index]
             showMetadataPanel = true
-            metadataViewModel = FileMetadataViewModel(rootDirectoryURL)
-            metadataViewModel?.updateMetadata(for: selectedFile)
+          if ( metadataViewModel == nil ) {
+             metadataViewModel = FileMetadataViewModel(rootDirectoryURL)
+          }
+            
+          metadataViewModel?.updateMetadata(for: selectedFile)
         } else {
-            showMetadataPanel = false
-            metadataViewModel = nil
+           showMetadataPanel = false
+           metadataViewModel = nil
         }
     }
    

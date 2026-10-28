@@ -4,127 +4,150 @@ import ImageIO
 
 struct FileMetadataView: View {
    @ObservedObject var viewModel: FileMetadataViewModel
+   
    @Binding var selectedFileID: FileItem.ID?
    @Binding var showMetadataPanel: Bool
         
       var body: some View {
-         NavigationStack {
-            List {
-               VStack(alignment: .leading, spacing: 16) {
-                  HStack {
-                     Text("File Details")
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                     
-                     Spacer()
-                     
-                     HStack(spacing: 8) {
-                        if let fileURL = viewModel.file?.url {
-                           Button(action: { showInFinder(fileURL) }) {
-                              Image(systemName: "arrow.up.square")
-                                 .font(.caption)
-                           }
-                           .buttonStyle(.plain)
-                           .help("Show in Finder")
-                           
-                           Button(action: { openFile(fileURL) }) {
-                              Image(systemName: "play.circle")
-                                 .font(.caption)
-                           }
-                           .buttonStyle(.plain)
-                           .help("Open File")
-                           
-                           Button(action: { copyMetadata() }) {
-                              Image(systemName: "doc.on.doc")
-                                 .font(.caption)
-                           }
-                           .buttonStyle(.plain)
-                           .help("Copy Metadata")
-                        }
-                        
-                        Button(action: { dismiss() }) {
-                           Image(systemName: "xmark.circle.fill")
-                              .font(.title2)
-                        }
-                        .buttonStyle(.plain)
-                     }
-                  }
-                  .padding(.horizontal)
-                  
-                  Divider()
-                  
+         List {
+            VStack(alignment: .leading, spacing: 0) {
+               Upper(viewModel: viewModel,selectedFileID: $selectedFileID,showMetadataPanel: $showMetadataPanel)
+               
+               Divider()
+                  .padding(.vertical, 5)
+            
+               VStack(alignment: .leading, spacing: 8) {
                   // Basic File Information
                   BasicInformation(viewModel: viewModel)
                   
-                  // File-Specific Metadata
-                  let contentType = viewModel.contentType(file: viewModel.file)
-                  switch contentType {
-                  case .mkv, .mp4, .avi, .unknown:
-                     // Video/Audio metadata
-                     if let videoMetadata = viewModel.videoMetadata {
-                        VideoInformation(contentType: contentType,videoMetadata: videoMetadata)
-                     }
-                     
-                     // Image metadata
-                     if let imageMetadata = viewModel.imageMetadata {
-                        ImageInformation(contentType: contentType,imageMetadata: imageMetadata)
-                     }
-                  case .nfo:
-                     Text("Information")
-                        .font(.headline)
-                     
-                     // NFO Metadata
-                     if let nfoMetadata = viewModel.nfoMetadata {
-                        NFOInformation(nfoMetadata: nfoMetadata)
-                     }
-                  case .binary:
-                     Placeholder()
-                  case .html:
-                     Placeholder()
-                  case .jpeg:
-                     Placeholder()
-                  case .markdown:
-                     Placeholder()
-                  case .mp3:
-                     Placeholder()
-                  case .png:
-                     Placeholder()
-                  case .text:
-                     Placeholder()
-                  case .xml:
-                     Placeholder()
-                  case .wav:
-                     Placeholder()
-                  }
+                  ContentInformation(viewModel: viewModel)
                   
                   Spacer()
                }
+               .padding(0)
             }
+            .padding(0)
          }
-    }
-    
-    private func dismiss() {
-       selectedFileID = nil
-       showMetadataPanel = false
-    }
-    
-    private func showInFinder(_ url: URL) {
-       NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path(percentEncoded: false))
-    }
-    
-    private func openFile(_ url: URL) {
-        NSWorkspace.shared.open(url)
-    }
-    
-    private func copyMetadata() {
-        let metadataText = viewModel.metadataText
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(metadataText, forType: .string)
+         .padding(0)
+         .listStyle(.plain)
     }
 }
 
+struct Upper: View {
+   @ObservedObject var viewModel: FileMetadataViewModel
+
+   @Binding var selectedFileID: FileItem.ID?
+   @Binding var showMetadataPanel: Bool
+
+   private func showInFinder(_ url: URL) {
+      NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path(percentEncoded: false))
+   }
+   
+   private func openFile(_ url: URL) {
+      NSWorkspace.shared.open(url)
+   }
+   
+   private func copyMetadata() {
+      let metadataText = viewModel.metadataText
+      NSPasteboard.general.clearContents()
+      NSPasteboard.general.setString(metadataText, forType: .string)
+   }
+   
+   private func dismiss() {
+      selectedFileID = nil
+      showMetadataPanel = false
+   }
+
+   var body: some View {
+      HStack(spacing: 0) {
+         Text("File Details")
+            .font(.headline)
+            .foregroundColor(.primary)
+         
+         Spacer()
+         
+         HStack(spacing: 8) {
+            if let fileURL = viewModel.file?.url {
+               Button(action: { showInFinder(fileURL) }) {
+                  Image(systemName: "arrow.up.square")
+                     .font(.caption)
+               }
+               .buttonStyle(.plain)
+               .help("Show in Finder")
+               
+               Button(action: { openFile(fileURL) }) {
+                  Image(systemName: "play.circle")
+                     .font(.caption)
+               }
+               .buttonStyle(.plain)
+               .help("Open File")
+               
+               Button(action: { copyMetadata() }) {
+                  Image(systemName: "doc.on.doc")
+                     .font(.caption)
+               }
+               .buttonStyle(.plain)
+               .help("Copy Metadata")
+            }
+            
+            Button(action: { dismiss() }) {
+               Image(systemName: "xmark.circle.fill")
+                  .font(.title2)
+            }
+            .buttonStyle(.plain)
+         }
+         .padding(0)
+      }
+      .padding(0)
+   }
+}
+
+struct ContentInformation: View {
+   @ObservedObject var viewModel: FileMetadataViewModel
+   
+   var body: some View {
+      // File-Specific Metadata
+      let contentType = viewModel.contentType(file: viewModel.file)
+      switch contentType {
+      case .mkv, .mp4, .avi, .unknown:
+         // Video/Audio metadata
+         if let videoMetadata = viewModel.videoMetadata {
+            VideoInformation(contentType: contentType,videoMetadata: videoMetadata)
+         }
+         
+         // Image metadata
+         if let imageMetadata = viewModel.imageMetadata {
+            ImageInformation(contentType: contentType,imageMetadata: imageMetadata)
+         }
+      case .nfo:
+         // NFO Metadata
+         if let nfoMetadata = viewModel.nfoMetadata {
+            NFOInformation(nfoMetadata: nfoMetadata)
+         }
+      case .binary:
+         Placeholder()
+      case .html:
+         Placeholder()
+      case .jpeg:
+         Placeholder()
+      case .markdown:
+         Placeholder()
+      case .mp3:
+         Placeholder()
+      case .png:
+         Placeholder()
+      case .text:
+         Placeholder()
+      case .xml:
+         Placeholder()
+      case .wav:
+         Placeholder()
+      }
+   }
+}
+
 struct BasicInformation: View {
-   @State var viewModel: FileMetadataViewModel
+   @ObservedObject var viewModel: FileMetadataViewModel
 
    private func formatDate(_ date: Date?) -> String {
       guard let date = date else { return "N/A" }

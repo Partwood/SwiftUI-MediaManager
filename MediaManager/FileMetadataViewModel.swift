@@ -22,8 +22,12 @@ class FileMetadataViewModel: ObservableObject {
    
    func updateMetadata(for fileItem: FileItem) {
       self.file = fileItem
+      
       videoMetadata = nil
       imageMetadata = nil
+      audioMetadata = nil
+      nfoMetadata = nil
+      nfoSections = []
       
       Task {
          do {
@@ -78,6 +82,7 @@ class FileMetadataViewModel: ObservableObject {
          await MainActor.run {
             do {
                let results = try NFOParser().parseNFOMetadata(fileSystem, url)
+               
                self.nfoMetadata = results.metadata
                self.nfoSections = results.sections
             } catch {
