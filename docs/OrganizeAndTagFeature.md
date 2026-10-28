@@ -2,7 +2,7 @@
 
 ## Overview
 
-This feature enables users to import metadata from external sources (specifically dvdcompare.net) and organize their media collections. The feature integrates with the existing NFO parsing and management system to providrganization workflow.
+This feature enables users to import metadata from external sources (specifically dvdcompare.net) and organize their media collections. The feature integrates with the existing NFO parsing and management system to provide organization workflow.
 
 ### Key Capabilities
 - **Import metadata** from dvdcompare.net paste content (handles various encoding issues)
@@ -109,7 +109,7 @@ Deleted Scenes:
 - "Sally's Bad Date" (0:59)
 - "Sleepless Night" (0:34)
 - "I Blew It" (0:26)
-- "Harry And Sally On The Couch" (1:46)
+- "Harry Sally On The Couch" (1:46)
 - "I Was Just Walking Down The Street" (1:51)
 Rob Reiner Theatrical Trailers:
 - "The Princess Bride" (2:20)
