@@ -289,7 +289,7 @@ enum ExtraType: String, CaseIterable {
 }
 ```
 
-### 6. Merge Strategies
+### 4. Merge Strategies
 
 When organizing files, the feature supports several merge strategies for handling existing files:
 
@@ -328,7 +328,7 @@ When organizing files, the feature supports several merge strategies for handlin
 └─────────────────────────────────────────┘
 ```    
 
-### 4. File Naming Conventions
+### 5. File Naming Conventions
 
 Consistent file naming is crucial for media server compatibility. The following conventions are used:
 
@@ -434,35 +434,6 @@ Examples:
    - Studio information
    - Image references (poster, fanart)
 
-#### Enhanced DVDCompareContent Struct
-```swift
-struct DVDCompareContent {
-    var type: MediaType // Movie or TVShow
-    var title: String
-    var season: Int?
-    var year: Int? // Extracted from title or input
-    var plot: String? // For movies
-    
-    // For TV Shows
-    var episodes: [(title: String, duration: TimeInterval, episodeNumber: Int, alternativeCut: Bool?)]
-    var commentaries: [(title: String, duration: TimeInterval, episodeNumber: Int?)]
-    var deletedScenes: [(title: String, duration: TimeInterval, episodeNumber: Int?)]
-    var musicVideos: [(title: String, duration: TimeInterval)]
-    var trailers: [(title: String, duration: TimeInterval)]
-    
-    // For Movies
-    var mainMovie: (title: String, duration: TimeInterval)
-    var extras: [(title: String, duration: TimeInterval, type: ExtraType)]
-    
-    // Metadata
-    var director: String?
-    var writers: [String]?
-    var cast: [(name: String, role: String)?]
-    var genre: [String]?
-    var rating: String?
-}
-```
-
 ## Feature Components
 
 ### 1. Import Interface
@@ -498,7 +469,7 @@ The parsing engine uses a multi-pass approach to handle the varied formats from 
 #### Pass 4: Post-processing
 - **Episode numbering**: Auto-assign sequential episode numbers or detect from input (e.g., "Part I", "Part II")
 - **Link resolution**: Associate commentaries and deleted scenes with their parent episodes
-- **Validation**: Ensure all required fields are populated### 2. Parsing Engine
+- **Validation**: Ensure all required fields are populated
 
 ### 3. File Organization Logic
 ```swift
