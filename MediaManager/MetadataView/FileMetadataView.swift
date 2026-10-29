@@ -230,16 +230,6 @@ struct VideoInformation: View {
    @State var contentType: FileSystem.FileContentType
    @State var videoMetadata: VideoMetadata
    
-   private func getContainerName(_ contentType: FileSystem.FileContentType) -> String {
-      switch contentType {
-      case .mkv: return "Matroska (MKV)"
-      case .mp4: return "MPEG-4"
-      case .avi: return "AVI"
-      case .mp3, .wav, .jpeg, .png: return "N/A"
-      default: return "N/A"
-      }
-   }
-
    private func formatDuration(_ seconds: TimeInterval) -> String {
       let hours = Int(seconds) / 3600
       let minutes = (Int(seconds) % 3600) / 60
@@ -337,10 +327,10 @@ struct VideoInformation: View {
          }
          
          VStack(alignment: .leading, spacing: 4) {
-            Label("Container", systemImage: "box")
+            Label("Container", systemImage: "video.square")
                .font(.subheadline)
                .foregroundColor(.secondary)
-            Text(getContainerName(contentType))
+            Text(contentType.description)
                .font(.body)
                .foregroundColor(.primary)
          }

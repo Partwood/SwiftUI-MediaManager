@@ -233,7 +233,7 @@ struct CutPasteControls: View {
             // Status indicator
             if viewModel.isCutMode {
                 HStack(spacing: 8) {
-                    Image(systemName: "scissor")
+                    Image(systemName: "scissors")
                     Text("\(viewModel.cutBuffer.count) file(s) cut - ready to paste")
                         .font(.caption)
                         .foregroundColor(.secondary)

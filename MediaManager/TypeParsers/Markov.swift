@@ -6,6 +6,7 @@
 //
 
 // https://www.matroska.org/technical/elements.html
+// https://www.matroska.org/technical/diagram.html
 
 import Foundation
 
@@ -13,7 +14,6 @@ struct MKVMetadata {
    let title: String?
    let writingApp: String?
    let durationInSeconds: Double
-   //let version: Int
 }
 
 // MARK: - EBML IDs
@@ -27,6 +27,7 @@ enum EBMLID {
    static let writingApp: [UInt8]         = [0x57, 0x41]
    static let timestampScale: [UInt8]     = [0x2A, 0xD7, 0xB1]
    static let duration: [UInt8]           = [0x44, 0x89]
+   static let chapters: [UInt8]           = [0x10, 0x43, 0xA7, 0x70]
 }
 
 // MARK: - MKV Parser Error
