@@ -32,6 +32,18 @@
 5. **Logging System**: Centralized logging for debugging and monitoring
 
 ### File Organization
+- **MediaManager/**: Main source code directory containing all Swift files
+  - **Core files**: MyApp.swift, ContentView.swift, FileBrowserView.swift, FileSystem.swift, FileItem.swift, Logging.swift, extURL.swift, NewFolderView.swift
+  - **CutAndPaste/**: Cut and paste operation implementation (CutPasteView.swift, CutPasteViewModel.swift)
+  - **MetadataView/**: File metadata display (FileMetadataView.swift, FileMetadataViewModel.swift)
+  - **TypeParsers/**: File type parsing (NFO.swift, Markov.swift)
+  - **Errors/**: Custom error types (FileIOError.swift, URLError.swift, RegExError.swift)
+  - **Assets.xcassets/**: App resources and icons
+- **docs/**: Architecture documentation, feature specifications
+- **MediaManager.xcodeproj/**: Xcode project files
+- **README.md**: Project overview and getting started guide
+- **guidelines.md**: Development guidelines
+- **system_prompt.md**: System configuration
 - **docs/**: Architecture documentation, feature specifications
 - **MyApp.swift**: Entry point and main application setup
 - **ContentView.swift**: Root view for the application
