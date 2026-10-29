@@ -9,7 +9,6 @@ import SwiftUI
 
 struct NewFolderView: View {
    @Binding var showNewFolderDialog: Bool
-   //@Binding var newFolderParentPath: String
    @Binding var rootDirectoryURL: URL?
    
    let currentPath: String
