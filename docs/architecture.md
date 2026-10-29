@@ -33,9 +33,10 @@
 
 ### File Organization
 - **MediaManager/**: Main source code directory containing all Swift files
-  - **Core files**: MyApp.swift, ContentView.swift, FileBrowserView.swift, FileSystem.swift, FileItem.swift, Logging.swift, extURL.swift, NewFolderView.swift
+  - **Core files**: MyApp.swift, FileBrowserView.swift, FileSystem.swift, FileItem.swift, Logging.swift, extURL.swift
   - **CutAndPaste/**: Cut and paste operation implementation (CutPasteView.swift, CutPasteViewModel.swift)
   - **MetadataView/**: File metadata display (FileMetadataView.swift, FileMetadataViewModel.swift)
+  - **OrganizeAndTag/**: Organize and tag feature implementation
   - **TypeParsers/**: File type parsing (NFO.swift, Markov.swift)
   - **Errors/**: Custom error types (FileIOError.swift, URLError.swift, RegExError.swift)
   - **Assets.xcassets/**: App resources and icons
@@ -44,12 +45,3 @@
 - **README.md**: Project overview and getting started guide
 - **guidelines.md**: Development guidelines
 - **system_prompt.md**: System configuration
-- **docs/**: Architecture documentation, feature specifications
-- **MyApp.swift**: Entry point and main application setup
-- **ContentView.swift**: Root view for the application
-- **FileBrowserView.swift**: File browsing interface implementation
-- **FileSystem.swift**: Core file system operations
-- **extURL.swift**: URL handling and network operations
-- **Logging.swift**: Logging utility implementation
-- **Errors/**: Directory containing custom error types
-- **Assets.xcassets**: App resources and icons
