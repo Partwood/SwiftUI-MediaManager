@@ -16,30 +16,25 @@ class ImportPanelViewModel: ObservableObject {
     @Published var organizationPreview: OrganizationPreview?
     
     /// Parses the input content
-    func parse(content: String, title: String, mediaType: MediaType) {
-        guard !content.isEmpty, !title.isEmpty else {
-            parsingWarnings.append("Please enter both content and title")
-            return
-        }
-        
-        //do {
-            var parsed = DVDCompareParser.parse(content)
-            parsed.title = title
-            parsed.type = mediaType
-            parsed.parsingWarnings = self.parsingWarnings
-            
-            self.parsedContent = parsed
-            self.parsingWarnings = parsed.parsingWarnings
-            
-            // Generate preview
-            self.organizationPreview = generatePreview(
-                content: parsed,
-                mediaType: mediaType
-            )
-            
-        //} catch {
-            //parsingWarnings.append("Parsing error: \(error.localizedDescription)")
-        //}
+   func parse(content: String, mediaType: MediaType,startingEpisode: Int? = nil) {
+      guard !content.isEmpty else {
+         parsingWarnings.append("Please enter the content to parse")
+         return
+      }
+
+      var parsed = DVDCompareParser.parse(content,startingEpisode: startingEpisode)
+      //parsed.title = title
+      //parsed.type = mediaType
+      parsed.parsingWarnings = self.parsingWarnings
+      
+      self.parsedContent = parsed
+      self.parsingWarnings = parsed.parsingWarnings
+      
+      // Generate preview
+      self.organizationPreview = generatePreview(
+         content: parsed,
+         mediaType: mediaType
+      )
     }
     
     /// Generates a preview of what will be organized

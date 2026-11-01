@@ -11,11 +11,14 @@ let bspace = "\u{08}" // backspace
 
 /// Parses dvdcompare.net content into structured data
 struct DVDCompareParser {
-    
+      static var startingEpisode: Int? = nil
+   
     /// Parses raw input text into DVDCompareContent
     /// - Parameter input: Raw input text from dvdcompare.net
     /// - Returns: Parsed content with warnings for incomplete data
-    static func parse(_ input: String) -> DVDCompareContent {
+    static func parse(_ input: String,startingEpisode: Int? = nil) -> DVDCompareContent {
+       DVDCompareParser.startingEpisode = startingEpisode
+       
         let preprocessed = InputPreprocessor.preprocess(input)
         
         var content = DVDCompareContent(
@@ -39,18 +42,22 @@ struct DVDCompareParser {
     
     /// Detects whether content is a movie or TV show
     private static func detectContentType(_ input: String) -> MediaType {
-        // TV shows typically have "Season" in the title
-        if input.contains("Season") || input.contains("season") {
-            return .tvShow
-        }
-        
-        // Movies typically have "(Year)" format
-        if let _ = input.range(of: "(\\d{4})", options: .regularExpression) {
-            return .movie
-        }
-        
-        // Default to TV show if ambiguous
-        return .tvShow
+       // TV shows typically have "Season" in the title
+       if input.lowercased().contains("season") {
+          return .tvShow
+       }
+       
+       if input.lowercased().contains("series") {
+          return .tvShow
+       }
+       
+       // Movies typically have "(Year)" format
+       if let _ = input.range(of: "(\\d{4})", options: .regularExpression) {
+          return .movie
+       }
+       
+       // Default to TV show if ambiguous
+       return .tvShow
     }
     
     /// Extracts the title from input
@@ -59,11 +66,11 @@ struct DVDCompareParser {
        
         // Remove "Season X" suffix for TV shows
         let withoutSeason = firstLine.replacingOccurrences(
-            of: ": Season \\d+",
-            with: "", 
+            of: ": (Season|Series) \\d+",
+            with: "",
             options: .regularExpression
         ).replacingOccurrences(
-            of: " Season \\d+", 
+            of: " (Season|Series) \\d+", 
             with: "", 
             options: .regularExpression
         ).replacingOccurrences(
@@ -90,14 +97,14 @@ struct DVDCompareParser {
     
     /// Extracts season number from input
     private static func extractSeason(_ input: String) -> Int? {
-        let pattern = "Season\\s*(\\d+)"
+        let pattern = "(Season|season|Series|series)\\s*(\\d+)"
         guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
               let match = regex.firstMatch(in: input, range: NSRange(input.startIndex..., in: input)),
               match.range(at: 1).location != NSNotFound else {
             return nil
         }
         
-        if let substring = input.subString(match.range(at: 1)),
+        if let substring = input.subString(match.range(at: 2)),
            let season = Int(substring) {
             return season
         }
@@ -151,10 +158,10 @@ struct DVDCompareParser {
     }
     
     /// Parses TV show content
-    private static func parseTVShow(from input: String, into content: inout DVDCompareContent) {
+    private static func parseTVShow(from input: String,into content: inout DVDCompareContent) {
         // Find section headers
         let sections = [
-            ("Episodes", "\\bEpisodes:?\n"),
+            ("Episodes", "\\b(Episodes|episodes):?\n"),
             ("Commentaries", "\\bCommentaries?:?\n"),
             ("Deleted Scenes", "\\bDeleted\\s*Scenes?:?\n"),
             ("Music Videos", "\\bMusic\\s*Videos?:?\n"),
@@ -186,7 +193,7 @@ struct DVDCompareParser {
           if foundSections[i].section == .episodes {
              // Read the first line to identify episode delimiter.
              let remaining = (end == nil) ? String(input[start...]) : String(input[start..<end!])
-             let startingLine: String = remaining.components(separatedBy: .newlines).first ?? ""
+             let startingLine: String = (remaining.components(separatedBy: .newlines).first ?? "").trimmingCharacters(in: .whitespaces)
              delimiter = startingLine.first
           } else {
              delimiter = nil
@@ -225,7 +232,10 @@ struct DVDCompareParser {
             
            if ( section == .episodes ) {
               // Parse episode entries: "- "Episode Title" (21:32)"
-              if let episode = parseEpisodeLine(trimmed) {
+              if var episode = parseEpisodeLine(trimmed) {
+                 if let startingEpisode = DVDCompareParser.startingEpisode {
+                    episode.episodeNumber = content.episodes.count + startingEpisode
+                 }
                  content.episodes.append(episode)
               }
            } else if ( section == .commentaries ) {
@@ -250,7 +260,7 @@ struct DVDCompareParser {
     /// Parses an episode line
     private static func parseEpisodeLine(_ line: String) -> Episode? {
         // Pattern: '- "Episode Title" (MM:SS)' OR '"Episode Title" (MM:SS)'
-        let pattern = "^(-\\s*)?\"?([^\"\\n]+)\"?(\\s*\\[(.*?)\\])?\\s*\\((\\d{1,2}:\\d{2})\\)"
+        let pattern = "^(-\\s*)?\"?([^\"\\n]+)\"?(\\s*\\[(.*?)\\])?\\s*(\\((\\d{1,2}:\\d{2})\\))?"
         
         guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
               let match = regex.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)) else {

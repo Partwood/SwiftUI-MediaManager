@@ -49,6 +49,32 @@ struct OrganizerTests {
       #expect(content.episodes.count == 4)
    }
 
+   @Test func redDwarfS1D1() async throws {
+      // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+      // Swift Testing Documentation
+      // https://developer.apple.com/documentation/testing
+      let content = await DVDCompareParser.parse(redDwarfS1D1)
+      #expect(content.title == "Red Dwarf")
+      #expect(content.year == 1988)
+      #expect(content.type == .tvShow)
+      #expect(content.season == 1)
+      
+      #expect(content.episodes.count == 6)
+   }
+
+   @Test func redDwarfS1D1Indented() async throws {
+      // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+      // Swift Testing Documentation
+      // https://developer.apple.com/documentation/testing
+      let content = await DVDCompareParser.parse(redDwarfS1D1Indented)
+      #expect(content.title == "Red Dwarf")
+      #expect(content.year == 1988)
+      #expect(content.type == .tvShow)
+      #expect(content.season == 1)
+      
+      #expect(content.episodes.count == 6)
+   }
+
    @Test func movie1() async throws {
       // Write your test here and use APIs like `#expect(...)` to check expected conditions.
       // Swift Testing Documentation
@@ -120,6 +146,34 @@ struct OrganizerTests {
    Text commentary by scenic art supervisors Michael and Denise Okuda on �In a Mirror, Darkly, Part II�
    In a Mirror, Darkly, Part II Deleted scene:
    - Scene 77 (2:19)
+   """
+   
+   let redDwarfS1D1: String =
+   """
+   Red Dwarf: Series 1 (TV) (1988)
+   All 6 unremastered episodes:
+   - "The End"
+   - "Future Echoes"
+   - "Balance Of Power"
+   - "Waiting For God"
+   - "Confidence & Paranoia"
+   - "Me�"
+   Audio commentary by actors Chris Barrie (Rimmer), Norman Lovett (Holly), Danny John Jules (The Cat) and Craig Charles (Lister)
+   Commentary by Writers Rob Grant, Doug Naylor and Director Ed Bye (on The End episode)
+   """
+   
+   let redDwarfS1D1Indented: String =
+   """
+   Red Dwarf: Series 1 (TV) (1988)
+      All 6 unremastered episodes:
+      - "The End"
+      - "Future Echoes"
+      - "Balance Of Power"
+      - "Waiting For God"
+      - "Confidence & Paranoia"
+      - "Me�"
+      Audio commentary by actors Chris Barrie (Rimmer), Norman Lovett (Holly), Danny John Jules (The Cat) and Craig Charles (Lister)
+      Commentary by Writers Rob Grant, Doug Naylor and Director Ed Bye (on The End episode)
    """
    
    let movie1: String =

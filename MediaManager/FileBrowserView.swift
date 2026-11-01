@@ -51,6 +51,10 @@ struct FileBrowserView: View {
    @State private var conflictItem: CutBufferItem? = nil
    @State private var proposedNewFileName: String = ""
    @State var showPasteProgress: Bool = false
+   
+   // Organize and Tag functionality
+   @State var isShowingOrganizePanel: Bool = false
+   @State private var importPanelView: ImportPanelView? = nil
       
    var body: some View {
       VStack(alignment: .leading, spacing: 12) {
@@ -81,6 +85,17 @@ struct FileBrowserView: View {
                                 currentPath: $currentPath,
                                 showPasteProgress: $showPasteProgress,
                                 fileBrowserView: self)
+            }
+            
+            if let _ = self.rootDirectoryURL {
+               Button(action: { isShowingOrganizePanel = true }) {
+                  Label("Organize & Tag", systemImage: "tag.fill")
+               }
+               .buttonStyle(.bordered)
+               
+               if isShowingOrganizePanel {
+                  ImportPanelView()
+               }
             }
          }
          .padding([.horizontal, .top])

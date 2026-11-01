@@ -15,8 +15,11 @@ struct ImportPanelView: View {
     @State private var showTitle: String = ""
     @State private var selectedMediaType: MediaType = .tvShow
     @State private var seasonNumber: Int = 1
+   @State private var episodeNumber: Int = 1
     @State private var basePath: URL = URL(fileURLWithPath: "/Users")
     @State private var mergeStrategy: MergeStrategy = .rename
+   @State private var isShowingFolderPicker: Bool = false
+   @State private var organizationPreview: OrganizationPreview? = nil
     
     var body: some View {
         Form {
@@ -36,6 +39,7 @@ struct ImportPanelView: View {
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     
                     Stepper("Season: \(seasonNumber)", value: $seasonNumber, in: 1...10)
+                   Stepper("Start Episode: \(episodeNumber)", value: $episodeNumber, in: 1...14)
                 } else {
                     TextField("Movie Title", text: $showTitle)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -48,9 +52,26 @@ struct ImportPanelView: View {
                     Text(basePath.lastPathComponent)
                     .font(.headline)
                     
-                    Button("Browse...") {
-                        // Implement file picker
-                    }
+                   Button("Browse...") {
+                      let panel = NSOpenPanel()
+                      panel.allowsMultipleSelection = false
+                      panel.canChooseDirectories = true
+                      panel.canChooseFiles = false
+                      panel.message = "Select base directory for organization"
+                      
+                      if panel.runModal() == .OK, let url = panel.url {
+                         basePath = url
+                         isShowingFolderPicker = false
+                         if showTitle.isEmpty {
+                            showTitle = basePath.lastPathComponent
+                         }
+                      }
+                   }
+                    //.sheet(isPresented: $isShowingFolderPicker) {
+                    //}
+                       // Implement file picker
+                    //}
+                    .buttonStyle(.bordered)
                 }
             }
             
@@ -73,7 +94,10 @@ struct ImportPanelView: View {
             // Actions
             Section {
                 Button("Parse & Preview") {
-                    viewModel.parse(content: content, title: showTitle, mediaType: selectedMediaType)
+                   self.organizationPreview = nil
+                   viewModel.parse(content: content, mediaType: selectedMediaType, startingEpisode: episodeNumber)
+                   self.organizationPreview = viewModel.organizationPreview
+                   debug("Parsed")
                 }
                 .buttonStyle(.borderedProminent)
                 
@@ -82,6 +106,10 @@ struct ImportPanelView: View {
                 }
                 .buttonStyle(.bordered)
             }
+           
+           if let organizationPreview = self.organizationPreview {
+              OrganizationPreviewView(preview: organizationPreview)
+           }
         }
         .formStyle(.grouped)
         .navigationTitle("Import Metadata")
