@@ -1143,3 +1143,9 @@ This feature will be implemented in six phases, each building on the previous on
 - 1-2 developers for efficient completion
 - Access to test media collections with various formats
 - Jellyfin test environment for NFO validation
+
+---
+
+## Phase Tracking
+Below are the phases that have been completed to date.
+- Phase 1
