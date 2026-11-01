@@ -34,6 +34,7 @@
 		9964808A30913F7400A8A7EF /* JellyfinNFOFeature.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = JellyfinNFOFeature.md; sourceTree = "<group>"; };
 		9964808F309206A100A8A7EF /* OrganizeAndTagFeature.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = OrganizeAndTagFeature.md; sourceTree = "<group>"; };
 		996480D4309778CB00A8A7EF /* MediaManagerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MediaManagerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		996480EF3097D1BB00A8A7EF /* OrganizeAndTagFeature_Phase2.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = OrganizeAndTagFeature_Phase2.md; sourceTree = "<group>"; };
 		99775DF73083B54E005E13CE /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		99775DF93083C6A7005E13CE /* guidelines.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = guidelines.md; sourceTree = "<group>"; };
 		99775DFD3083D597005E13CE /* system_prompt.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = system_prompt.md; sourceTree = "<group>"; };
@@ -92,6 +93,7 @@
 		99775E19308501D6005E13CE /* docs */ = {
 			isa = PBXGroup;
 			children = (
+				996480EF3097D1BB00A8A7EF /* OrganizeAndTagFeature_Phase2.md */,
 				99775E18308501D6005E13CE /* architecture.md */,
 				9964805C308E18D600A8A7EF /* MetadataSidePanelFeature.md */,
 				99648080308F752200A8A7EF /* CutPasteFeature.md */,

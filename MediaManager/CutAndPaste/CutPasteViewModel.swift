@@ -124,7 +124,7 @@ class CutPasteViewModel: ObservableObject {
         // Check if file already exists
         if destinationFileURL.isExisting() {
             // Conflict exists, show options
-            let resolution = await requestConflictResolution(for: item, at: destinationFileURL)
+            let resolution = requestConflictResolution(for: item, at: destinationFileURL)
             
             switch resolution {
             case .replace:

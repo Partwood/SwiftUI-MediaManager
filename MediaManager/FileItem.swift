@@ -49,4 +49,30 @@ struct FileItem: Identifiable {
          return contentType.description
       }
    }
+   
+   init(url: URL, name: String, isDirectory: Bool, path: String, size: Int64, type: String, creationDate: Date?, modifiedDate: Date?, contentType: FileSystem.FileContentType, durationInSeconds: Double?) {
+      self.url = url
+      self.name = name
+      self.isDirectory = isDirectory
+      self.path = path
+      self.size = size
+      self.type = type
+      self.creationDate = creationDate
+      self.modifiedDate = modifiedDate
+      self.contentType = contentType
+      self.durationInSeconds = durationInSeconds
+   }
+
+   init(url: URL) {
+      self.url = url
+      self.name = ""
+      self.isDirectory = false
+      self.path = ""
+      self.size = 0
+      self.type = ""
+      self.creationDate = nil
+      self.modifiedDate = nil
+      self.contentType = .unknown
+      self.durationInSeconds = 0
+   }
 }
