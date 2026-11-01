@@ -30,8 +30,8 @@ struct InputPreprocessor {
         
         // Replace mojibake characters (replacement character �)
        // Replace mojibake characters (replacement character �)
-        processed = processed.replacingOccurrences(of: "\u{FFFD}", with: "", options: .regularExpression)
-        processed = processed.replacingOccurrences(of: "�", with: "", options: .regularExpression)
+        processed = processed.replacingOccurrences(of: "\u{FFFD}", with: "\"", options: .regularExpression)
+        processed = processed.replacingOccurrences(of: "�", with: "\"", options: .regularExpression)
         
         // Normalize quotes
         processed = normalizeQuotes(in: processed)

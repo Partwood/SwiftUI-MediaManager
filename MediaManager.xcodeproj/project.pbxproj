@@ -17,12 +17,23 @@
 		99775E1A308501D6005E13CE /* architecture.md in Resources */ = {isa = PBXBuildFile; fileRef = 99775E18308501D6005E13CE /* architecture.md */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		996480D8309778CB00A8A7EF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 000000000000000100000000;
+			remoteInfo = MediaManager;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		000000000000000000000120 /* MediaManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MediaManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9964805C308E18D600A8A7EF /* MetadataSidePanelFeature.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = MetadataSidePanelFeature.md; sourceTree = "<group>"; };
 		99648080308F752200A8A7EF /* CutPasteFeature.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CutPasteFeature.md; sourceTree = "<group>"; };
 		9964808A30913F7400A8A7EF /* JellyfinNFOFeature.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = JellyfinNFOFeature.md; sourceTree = "<group>"; };
 		9964808F309206A100A8A7EF /* OrganizeAndTagFeature.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = OrganizeAndTagFeature.md; sourceTree = "<group>"; };
+		996480D4309778CB00A8A7EF /* MediaManagerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MediaManagerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		99775DF73083B54E005E13CE /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		99775DF93083C6A7005E13CE /* guidelines.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = guidelines.md; sourceTree = "<group>"; };
 		99775DFD3083D597005E13CE /* system_prompt.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = system_prompt.md; sourceTree = "<group>"; };
@@ -35,10 +46,20 @@
 			path = MediaManager;
 			sourceTree = "<group>";
 		};
+		996480D5309778CB00A8A7EF /* MediaManagerTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = MediaManagerTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		000000000000000130000000 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			files = (
+			);
+		};
+		996480D1309778CB00A8A7EF /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
 			);
@@ -54,6 +75,7 @@
 				99775DF73083B54E005E13CE /* README.md */,
 				000000000000000000000010 /* MediaManager */,
 				99775E19308501D6005E13CE /* docs */,
+				996480D5309778CB00A8A7EF /* MediaManagerTests */,
 				000000000000000000000020 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -62,6 +84,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000000120 /* MediaManager.app */,
+				996480D4309778CB00A8A7EF /* MediaManagerTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -99,6 +122,27 @@
 			productReference = 000000000000000000000120 /* MediaManager.app */;
 			productType = "com.apple.product-type.application";
 		};
+		996480D3309778CB00A8A7EF /* MediaManagerTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 996480DA309778CB00A8A7EF /* Build configuration list for PBXNativeTarget "MediaManagerTests" */;
+			buildPhases = (
+				996480D0309778CB00A8A7EF /* Sources */,
+				996480D1309778CB00A8A7EF /* Frameworks */,
+				996480D2309778CB00A8A7EF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				996480D9309778CB00A8A7EF /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				996480D5309778CB00A8A7EF /* MediaManagerTests */,
+			);
+			name = MediaManagerTests;
+			productName = MediaManagerTests;
+			productReference = 996480D4309778CB00A8A7EF /* MediaManagerTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -106,11 +150,15 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 2630;
+				LastSwiftUpdateCheck = 2700;
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
 					000000000000000100000000 = {
 						CreatedOnToolsVersion = 26.3;
+					};
+					996480D3309778CB00A8A7EF = {
+						CreatedOnToolsVersion = 27.0;
+						TestTargetID = 000000000000000100000000;
 					};
 				};
 			};
@@ -129,6 +177,7 @@
 			projectRoot = "";
 			targets = (
 				000000000000000100000000 /* MediaManager */,
+				996480D3309778CB00A8A7EF /* MediaManagerTests */,
 			);
 		};
 /* End PBXProject section */
@@ -147,6 +196,11 @@
 				99775DFA3083C6A7005E13CE /* guidelines.md in Resources */,
 			);
 		};
+		996480D2309778CB00A8A7EF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -155,7 +209,20 @@
 			files = (
 			);
 		};
+		996480D0309778CB00A8A7EF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			files = (
+			);
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		996480D9309778CB00A8A7EF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 000000000000000100000000 /* MediaManager */;
+			targetProxy = 996480D8309778CB00A8A7EF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		000000000000000011000000 /* Debug configuration for PBXProject "MediaManager" */ = {
@@ -388,6 +455,50 @@
 			};
 			name = Release;
 		};
+		996480DB309778CB00A8A7EF /* Debug configuration for PBXNativeTarget "MediaManagerTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R4H8VG8856;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = PartWood.MediaManagerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MediaManager.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MediaManager";
+			};
+			name = Debug;
+		};
+		996480DC309778CB00A8A7EF /* Release configuration for PBXNativeTarget "MediaManagerTests" */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = R4H8VG8856;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.7;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = PartWood.MediaManagerTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/MediaManager.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/MediaManager";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -404,6 +515,14 @@
 			buildConfigurations = (
 				000000000000000111000000 /* Debug configuration for PBXNativeTarget "MediaManager" */,
 				000000000000000112000000 /* Release configuration for PBXNativeTarget "MediaManager" */,
+			);
+			defaultConfigurationName = Release;
+		};
+		996480DA309778CB00A8A7EF /* Build configuration list for PBXNativeTarget "MediaManagerTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				996480DB309778CB00A8A7EF /* Debug configuration for PBXNativeTarget "MediaManagerTests" */,
+				996480DC309778CB00A8A7EF /* Release configuration for PBXNativeTarget "MediaManagerTests" */,
 			);
 			defaultConfigurationName = Release;
 		};

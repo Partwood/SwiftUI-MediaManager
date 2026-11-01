@@ -55,23 +55,37 @@ struct DVDCompareParser {
     
     /// Extracts the title from input
     private static func extractTitle(_ input: String) -> String {
+       let firstLine: String = String(input.split(separator: "\n",maxSplits: 1).first ?? "")
+       
         // Remove "Season X" suffix for TV shows
-        let withoutSeason = input.replacingOccurrences(
-            of: ": Season \\d+", 
+        let withoutSeason = firstLine.replacingOccurrences(
+            of: ": Season \\d+",
             with: "", 
             options: .regularExpression
         ).replacingOccurrences(
             of: " Season \\d+", 
             with: "", 
             options: .regularExpression
+        ).replacingOccurrences(
+         of: " \\(TV\\)",// TV indicator
+         with: "",
+         options: .regularExpression
+        ).replacingOccurrences(
+         of: " \\(\\d{4}\\)",// Year, i.e. (2009)
+         with: "",
+         options: .regularExpression
+        ).replacingOccurrences(
+         of: " \\(\\d{4}\\-\\d{4}\\)",// Year, i.e. (2001-2002)
+         with: "",
+         options: .regularExpression
         )
         
         // Extract title (everything before "Episodes:", "Extras:", or first year pattern)
         let title = withoutSeason
-            .components(separatedBy: ["Episodes:", "Extras:", ":", " "])
+            .components(separatedBy: ["Episodes", "Extras"/*, ":", " "*/])
             .first ?? withoutSeason.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        return title
+        return title.trimmingCharacters(in: .whitespacesAndNewlines)
     }
     
     /// Extracts season number from input
@@ -138,32 +152,62 @@ struct DVDCompareParser {
     
     /// Parses TV show content
     private static func parseTVShow(from input: String, into content: inout DVDCompareContent) {
-        var currentSection: Section?
-        
         // Find section headers
         let sections = [
-            ("Episodes", bspace+"Episodes[:\n]"),
-            ("Commentaries", bspace+"Commentaries?[:\n]"),
-            ("Deleted Scenes", bspace+"Deleted\\s*Scenes?[:\n]"),
-            ("Music Videos", bspace+"Music\\s*Videos?[:\n]"),
-            ("Trailers", bspace+"Trailers?[:\n]"),
-            ("Supplements", bspace+"Supplements?[:\n]")
+            ("Episodes", "\\bEpisodes:?\n"),
+            ("Commentaries", "\\bCommentaries?:?\n"),
+            ("Deleted Scenes", "\\bDeleted\\s*Scenes?:?\n"),
+            ("Music Videos", "\\bMusic\\s*Videos?:?\n"),
+            ("Trailers", "\\bTrailers?:?\n"),
+            ("Supplements", "\\bSupplements?:?\n")
         ]
         
-        for (sectionName, pattern) in sections {
-            if let range = input.range(of: pattern, options: .regularExpression) {
-               currentSection = Section(rawValue: sectionName)
-                parseSection(from: input, startingAt: range.upperBound, section: currentSection!,
-                             into: &content, sectionName: sectionName)
-            }
-        }
+       struct SectionRange {
+          var section: Section
+          var range: Range<String.Index>
+       }
+       
+       var foundSections = Array<SectionRange>()
+       for (sectionName, pattern) in sections {
+          if let range = input.range(of: pattern, options: .regularExpression) {
+             if let currentSection = Section.section(rawValue: sectionName) {
+                foundSections.append(SectionRange(section: currentSection,range: range))
+             }
+          }
+       }
+       
+       foundSections.sort(by: { a,b in a.range.upperBound < b.range.upperBound})
+
+       for i in 0..<foundSections.count {
+          let start = foundSections[i].range.upperBound//input.index(after: foundSections[i].range.upperBound)
+          let end = ((i+1) < foundSections.count) ? foundSections[i+1].range.lowerBound : nil
+          
+          let delimiter: Character?
+          if foundSections[i].section == .episodes {
+             // Read the first line to identify episode delimiter.
+             let remaining = (end == nil) ? String(input[start...]) : String(input[start..<end!])
+             let startingLine: String = remaining.components(separatedBy: .newlines).first ?? ""
+             delimiter = startingLine.first
+          } else {
+             delimiter = nil
+          }
+          
+          parseSection(from: input, startingAt: start, endingAt: end, delimiter: delimiter,
+                       section: foundSections[i].section,
+                       into: &content)
+       }
     }
     
     /// Parses a specific section of content
-    private static func parseSection(from input: String, startingAt offset: String.Index, 
-                                    section: Section,  into content: inout DVDCompareContent,
-                                    sectionName: String) {
-        let remaining = String(input[offset...])
+   private static func parseSection(from input: String,
+                                    startingAt offset: String.Index,
+                                    endingAt endOffset: String.Index?,
+                                    delimiter: Character?,
+                                    section: Section,
+                                    into content: inout DVDCompareContent,
+                                    //sectionName: String
+   ) {
+       let remaining = (endOffset == nil) ? String(input[offset...]) : String(input[offset..<endOffset!])
         let lines = remaining.components(separatedBy: .newlines)
         
         for line in lines {
@@ -173,40 +217,50 @@ struct DVDCompareParser {
             if trimmed.isEmpty || trimmed.hasPrefix("Episodes:") || trimmed.hasPrefix("Commentaries:") {
                 continue
             }
+           
+           if let delimiter,
+              ( trimmed.first != delimiter ) {
+              break
+           }
             
-            // Parse episode entries: "- "Episode Title" (21:32)"
-            if let episode = parseEpisodeLine(trimmed) {
-                content.episodes.append(episode)
-            }
-            // Parse commentary entries: "- "Episode Title" with ..."
-            else if let extra = parseCommentaryLine(trimmed) {
-                content.commentaries.append(extra)
-            }
-            // Parse deleted scene entries
-            else if let extra = parseDeletedSceneLine(trimmed) {
-                content.deletedScenes.append(extra)
-            }
-            // Parse standalone deleted scenes: "Scene 92 (1:31)"
-            else if let extra = parseStandaloneSceneLine(trimmed) {
-                content.deletedScenes.append(extra)
-            }
+           if ( section == .episodes ) {
+              // Parse episode entries: "- "Episode Title" (21:32)"
+              if let episode = parseEpisodeLine(trimmed) {
+                 content.episodes.append(episode)
+              }
+           } else if ( section == .commentaries ) {
+              // Parse commentary entries: "- "Episode Title" with ..."
+              if let extra = parseCommentaryLine(trimmed) {
+                 content.commentaries.append(extra)
+              }
+           } else if ( section == .deleted_scenes ) {
+              // Parse deleted scene entries
+              if let extra = parseDeletedSceneLine(trimmed) {
+                 content.deletedScenes.append(extra)
+              }
+           } else if ( section == .supplements ) {
+              // Parse standalone deleted scenes: "Scene 92 (1:31)"
+              if let extra = parseStandaloneSceneLine(trimmed) {
+                 content.deletedScenes.append(extra)
+              }
+           }
         }
     }
     
     /// Parses an episode line
     private static func parseEpisodeLine(_ line: String) -> Episode? {
-        // Pattern: "- "Episode Title" (HH:MM)"
-        let pattern = "^-\\s*\"?([^\"\\n]+)\"?\\s*\\((\\d{1,2}):(\\d{2})\\)"
+        // Pattern: '- "Episode Title" (MM:SS)' OR '"Episode Title" (MM:SS)'
+        let pattern = "^(-\\s*)?\"?([^\"\\n]+)\"?(\\s*\\[(.*?)\\])?\\s*\\((\\d{1,2}:\\d{2})\\)"
         
         guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
               let match = regex.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)) else {
             return nil
         }
         
-       let title = line.string(match.range(at: 1)) ?? ""
-       let durationString = line.boundedBy(lower: match.range(at: 2))
-        let duration = DurationParser.parse(durationString ?? "") ?? 0
-        
+       let title = line.string(match.range(at: 2)) ?? ""
+       let durationString = line.string(match.range(at: 4)) ?? ""
+       let duration = DurationParser.parse(durationString) ?? 0
+
         // Check for alternative cuts
         let alternativeCut = line.contains("Original cut") || line.contains("extended cut") || 
                             line.contains("Producer's")
@@ -566,11 +620,11 @@ struct DVDCompareParser {
     }
     
     /// Enum representing different sections in the input
-   enum Section: String {
+   enum Section: String, CaseIterable {
       case episodes
       case commentaries
-      case deletedScenes
-      case musicVideos
+      case deleted_scenes
+      case music_videos
       case trailers
       case supplements
       
@@ -578,11 +632,18 @@ struct DVDCompareParser {
          switch self {
          case .episodes: return "Episodes"
          case .commentaries: return "Commentaries"
-         case .deletedScenes: return "Deleted Scenes"
-         case .musicVideos: return "Music Videos"
+         case .deleted_scenes: return "Deleted Scenes"
+         case .music_videos: return "Music Videos"
          case .trailers: return "Trailers"
          case .supplements: return "Supplements"
          }
+      }
+      
+      static func section(rawValue: String) -> Section? {
+         let underscored = rawValue.lowercased().replacingOccurrences(of: " ", with: "_")
+         return Section.allCases.first(where: { value in
+            value.rawValue == underscored
+         })
       }
    }
 }
