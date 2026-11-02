@@ -1,8 +1,6 @@
 # MediaManager Architecture
 
-## Project Structure
-
-### Core Architecture
+## ProjecArchitecture
 - **MVVM Pattern**: Views (FileBrowserView, FileMetadataView, CutPasteView) with corresponding ViewModels
 - **SwiftUI-Based UI**: All interfaces built with SwiftUI for macOS
 - **FileSystem Layer**: Custom FileSystem class for file operations with security-scoped resource support
@@ -37,6 +35,27 @@
   - **CutAndPaste/**: Cut and paste operation implementation (CutPasteView.swift, CutPasteViewModel.swift)
   - **MetadataView/**: File metadata display (FileMetadataView.swift, FileMetadataViewModel.swift)
   - **OrganizeAndTag/**: Organize and tag feature implementation
+    - **Data Models/**:
+      - `MediaType.swift`: Enum for media types (movie, tvShow)
+      - `Episode.swift`: Struct for TV episode data
+      - `Extra.swift`: Struct for extra content (commentaries, deleted scenes, etc.)
+      - `ExtraType.swift`: Enum for extra content types with subdirectory mapping
+      - `MergeStrategy.swift`: Enum for handling existing files (replace, skip, rename, mergeMetadata)
+      - `DVDCompareContent.swift`: Struct for parsed dvdcompare.net content
+    - **File Organization/**:
+      - `FileOrganizer.swift`: Core logic for organizing TV shows and movies
+      - `NFOGenerator.swift`: Generates Jellyfin-compatible NFO files
+      - `OrganizationResults.swift`: Struct for tracking organization results
+    - **Parsing Engine/**:
+      - `DVDCompareParser.swift`: Parses dvdcompare.net content with encoding handling
+      - `DurationParser.swift`: Converts duration strings to TimeInterval
+      - `InputPreprocessor.swift`: Preprocesses input for encoding issues
+    - **UI Components/**:
+      - `ImportPanelView.swift`: Main UI panel for input and configuration
+      - `OrganizationPreviewView.swift`: Preview of what will be organized
+      - `ConfirmationDialog.swift`: Final confirmation dialog
+    - **ViewModel**:
+      - `ImportPanelViewModel.swift`: ViewModel for import panel operations
   - **TypeParsers/**: File type parsing (NFO.swift, Markov.swift)
   - **Errors/**: Custom error types (FileIOError.swift, URLError.swift, RegExError.swift)
   - **Assets.xcassets/**: App resources and icons

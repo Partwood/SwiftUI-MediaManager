@@ -11,8 +11,6 @@ import Combine
 
 //    cut buffer and paste operations for file moving
 class CutPasteViewModel: ObservableObject {
-   //let objectWillChange: ObservableObjectPublisher
-   
     @Published var cutBuffer: [CutBufferItem] = []
     @Published var isCutMode = false
     @Published var isPasteInProgress = false
@@ -177,9 +175,12 @@ class CutPasteViewModel: ObservableObject {
         alert.informativeText = "A file named \"\(item.file.name)\" already exists in the destination. What would you like to do?"
         alert.alertStyle = .warning
         
-        let replaceButton = alert.addButton(withTitle: "Replace")
-        let keepBothButton = alert.addButton(withTitle: "Keep Both")
-        let skipButton = alert.addButton(withTitle: "Skip")
+       // Generate the proposed new filename for "Keep Both" option
+       let proposedNewFileName = generateUniqueFileName(fileName: item.file.name, in: destinationURL)
+
+        let _ = alert.addButton(withTitle: "Replace")
+        let _ = alert.addButton(withTitle: "Keep Both")
+        let _ = alert.addButton(withTitle: "Skip")
         
         let response = alert.runModal()
         
@@ -194,35 +195,6 @@ class CutPasteViewModel: ObservableObject {
             return .skip
         }
     }
-   
-   /// Request user to resolve a naming conflict
-//   @MainActor
-//   private func requestConflictResolution(for item: CutBufferItem, at destinationURL: URL) -> ConflictResolution {
-//      let alert = NSAlert()
-//      alert.messageText = "File Conflict"
-//      alert.informativeText = "A file named \"\(item.file.name)\" already exists in the destination. What would you like to do?"
-//      alert.alertStyle = .warning
-//      
-//      // Generate the proposed new filename for "Keep Both" option
-//      let proposedNewFileName = generateUniqueFileName(fileName: item.file.name, in: destinationURL)
-//      
-//      let replaceButton = alert.addButton(withTitle: "Replace")
-//      let keepBothButton = alert.addButton(withTitle: "Keep Both")
-//      let skipButton = alert.addButton(withTitle: "Skip")
-//      
-//      let response = alert.runModal()
-//      
-//      switch response {
-//      case .alertFirstButtonReturn:
-//         return .replace
-//      case .alertSecondButtonReturn:
-//         return .keepBoth
-//      case .alertThirdButtonReturn:
-//         return .skip
-//      default:
-//         return .skip
-//      }
-//   }
 
     /// Generate a unique filename by appending timestamp and counter
     private func generateUniqueFileName(fileName: String, in directoryURL: URL) -> String {
@@ -241,19 +213,6 @@ class CutPasteViewModel: ObservableObject {
        debug("extensionPart:\(extensionPart) newFileName:\(newFileName)")
         return newFileName
     }
-//   /// Generate a unique filename by appending timestamp and counter
-//   private func generateUniqueFileName(fileName: String, in directoryURL: URL) -> String {
-//      let baseName = fileName
-//      let extensionPart = URL(fileURLWithPath: fileName).pathExtension
-//      let nameWithoutExt = baseName.hasExtension ? baseName.deletingPathExtension() : baseName
-//      
-//      let timestamp = Date().timeIntervalSince1970
-//      let counter = 1
-//      
-//      let newFileName = "\(nameWithoutExt)_\(timestamp)_\(counter).\(extensionPart)"
-//      return newFileName
-//   }
-   
 
    /// Manages the
    
