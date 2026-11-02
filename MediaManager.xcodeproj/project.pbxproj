@@ -93,12 +93,12 @@
 		99775E19308501D6005E13CE /* docs */ = {
 			isa = PBXGroup;
 			children = (
-				996480EF3097D1BB00A8A7EF /* OrganizeAndTagFeature_Phase2.md */,
 				99775E18308501D6005E13CE /* architecture.md */,
 				9964805C308E18D600A8A7EF /* MetadataSidePanelFeature.md */,
 				99648080308F752200A8A7EF /* CutPasteFeature.md */,
 				9964808A30913F7400A8A7EF /* JellyfinNFOFeature.md */,
 				9964808F309206A100A8A7EF /* OrganizeAndTagFeature.md */,
+				996480EF3097D1BB00A8A7EF /* OrganizeAndTagFeature_Phase2.md */,
 			);
 			path = docs;
 			sourceTree = "<group>";
