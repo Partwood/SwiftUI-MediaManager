@@ -27,24 +27,20 @@ struct ConfirmationDialog: View {
                 .foregroundColor(.secondary)
             
             List {
-                //if
-                  let filesMoved = results.filesMoved.count// {
-                    Text("• Move \(filesMoved) file\(filesMoved == 1 ? "" : "s")")
-                //}
-                //if
-                  let nfoFiles = results.nfoFilesCreated.count //{
-                    Text("• Create \(nfoFiles) NFO file\(nfoFiles == 1 ? "" : "s")")
-                //}
-                if !results.warnings.isEmpty {
-                    Text("• \(results.warnings.count) warning\(results.warnings.count == 1 ? "" : "s")")
-                        .foregroundColor(.orange)
-                }
-                if !results.errors.isEmpty {
-                    Text("• \(results.errors.count) error\(results.errors.count == 1 ? "" : "s")")
-                        .foregroundColor(.red)
-                }
+               let filesMoved = results.filesMoved.count// {
+               Text("• Move \(filesMoved) file\(filesMoved == 1 ? "" : "s")")
+               let nfoFiles = results.nfoFilesCreated.count //{
+               Text("• Create \(nfoFiles) NFO file\(nfoFiles == 1 ? "" : "s")")
+               if !results.warnings.isEmpty {
+                  Text("• \(results.warnings.count) warning\(results.warnings.count == 1 ? "" : "s")")
+                     .foregroundColor(.orange)
+               }
+               if !results.errors.isEmpty {
+                  Text("• \(results.errors.count) error\(results.errors.count == 1 ? "" : "s")")
+                     .foregroundColor(.red)
+               }
             }
-            //.listStyle(.insetGrouped)
+            .listStyle(.inset)
             
             // Warning/Error Messages
             if !results.warnings.isEmpty || !results.errors.isEmpty {

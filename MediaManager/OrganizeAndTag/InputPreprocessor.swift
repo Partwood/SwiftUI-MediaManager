@@ -29,7 +29,6 @@ struct InputPreprocessor {
         }
         
         // Replace mojibake characters (replacement character �)
-       // Replace mojibake characters (replacement character �)
         processed = processed.replacingOccurrences(of: "\u{FFFD}", with: "\"", options: .regularExpression)
         processed = processed.replacingOccurrences(of: "�", with: "\"", options: .regularExpression)
         
@@ -49,7 +48,6 @@ struct InputPreprocessor {
         result = result.replacingOccurrences(of: "“", with: "\"", options: .regularExpression)
         result = result.replacingOccurrences(of: "”", with: "\"", options: .regularExpression)
         result = result.replacingOccurrences(of: "‘", with: "'", options: .regularExpression)
-        //result = result.replacingOccurrences(of: '’', with: "'", options: .regularExpression)
         return result
     }
     

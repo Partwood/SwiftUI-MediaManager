@@ -259,7 +259,7 @@ struct DVDCompareParser {
     
     /// Parses an episode line
     private static func parseEpisodeLine(_ line: String) -> Episode? {
-        // Pattern: '- "Episode Title" (MM:SS)' OR '"Episode Title" (MM:SS)'
+        // Pattern: '- "Episode Title" (MM:SS)' OR '"Episode Title" (MM:SS)'; Time could be optional
         let pattern = "^(-\\s*)?\"?([^\"\\n]+)\"?(\\s*\\[(.*?)\\])?\\s*(\\((\\d{1,2}:\\d{2})\\))?"
         
         guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),

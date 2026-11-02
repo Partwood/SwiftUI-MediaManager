@@ -339,7 +339,7 @@ struct FileOrganizer {
             if FileManager.default.fileExists(atPath: url.path) {
                 switch mergeStrategy {
                 case .replace:
-                    try NFOGenerator.generateMovieNFO(
+                    _ = try NFOGenerator.generateMovieNFO(
                         title: title,
                         plot: plot,
                         year: year,
@@ -355,7 +355,7 @@ struct FileOrganizer {
                     let newURL = url.deletingLastPathComponent()
                         .appendingPathComponent("\(url.lastPathComponent) (Old)")
                     try FileManager.default.moveItem(at: oldURL, to: newURL)
-                    try NFOGenerator.generateMovieNFO(
+                   _ = try NFOGenerator.generateMovieNFO(
                         title: title,
                         plot: plot,
                         year: year,
@@ -368,7 +368,7 @@ struct FileOrganizer {
                     results.warnings.append("Merging metadata with existing NFO: \(filename)")
                 }
             } else {
-                try NFOGenerator.generateMovieNFO(
+               _ = try NFOGenerator.generateMovieNFO(
                     title: title,
                     plot: plot,
                     year: year,
