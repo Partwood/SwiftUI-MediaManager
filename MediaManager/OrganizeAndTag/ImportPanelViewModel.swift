@@ -23,8 +23,6 @@ class ImportPanelViewModel: ObservableObject {
       }
 
       var parsed = DVDCompareParser.parse(content,startingEpisode: startingEpisode)
-      //parsed.title = title
-      //parsed.type = mediaType
       parsed.parsingWarnings = self.parsingWarnings
       
       self.parsedContent = parsed
@@ -49,6 +47,7 @@ class ImportPanelViewModel: ObservableObject {
         return OrganizationPreview(
             mediaType: mediaType,
             title: content.title,
+            mainMovieDuration: content.mainMovieDuration,
             season: content.season,
             episodes: content.episodes,
             commentaries: content.commentaries,

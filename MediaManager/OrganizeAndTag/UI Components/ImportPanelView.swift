@@ -9,18 +9,18 @@ import SwiftUI
 
 /// Main UI panel for importing and configuring organization
 struct ImportPanelView: View {
-    @StateObject private var viewModel = ImportPanelViewModel()
-    
-    @State private var content: String = ""
-    @State private var showTitle: String = ""
-    @State private var selectedMediaType: MediaType = .tvShow
-    @State private var seasonNumber: Int = 1
-   @State private var episodeNumber: Int = 1
-    @State private var basePath: URL = URL(fileURLWithPath: "/Users")
-    @State private var mergeStrategy: MergeStrategy = .rename
-   @State private var isShowingFolderPicker: Bool = false
-   @State private var organizationPreview: OrganizationPreview? = nil
-    
+   @StateObject private var viewModel = ImportPanelViewModel()
+
+   @State var content: String = ""
+   @State var showTitle: String = ""
+   @State var selectedMediaType: MediaType = .tvShow
+   @State var seasonNumber: Int = 1
+   @State var episodeNumber: Int = 1
+   @State var basePath: URL = URL(fileURLWithPath: "/Users")
+   @State var mergeStrategy: MergeStrategy = .rename
+   @State var isShowingFolderPicker: Bool = false
+   @State var organizationPreview: OrganizationPreview? = nil
+
     var body: some View {
         Form {
             // Content Type Selection
@@ -108,7 +108,7 @@ struct ImportPanelView: View {
             }
            
            if let organizationPreview = self.organizationPreview {
-              OrganizationPreviewView(preview: organizationPreview)
+              OrganizationPreviewView(preview: organizationPreview,basePath: basePath,mergeStrategy: mergeStrategy)
            }
         }
         .formStyle(.grouped)
@@ -120,5 +120,5 @@ struct ImportPanelView: View {
 }
 
 #Preview {
-    ImportPanelView()
+   ImportPanelView()
 }

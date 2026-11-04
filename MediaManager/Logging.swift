@@ -43,24 +43,24 @@ func logError(_ error:Error,whichFile:String = #file,whichFunction:String = #fun
    let message = "\(error)"
    let fileName = whichFile.suffix(from:whichFile.lastIndex(of: "/")!)
    
-   Logger.basicLog.error("ERROR \(fileName, privacy: .public)::\(whichFunction, privacy: .public)[\(whichLine, privacy: .public)] \(message, privacy: .public)")
+   Logger.basicLog.error("❌ ERROR \(fileName, privacy: .public)::\(whichFunction, privacy: .public)[\(whichLine, privacy: .public)] \(message, privacy: .public)")
 }
 
 func logError(_ message:String,whichFile:String = #file,whichFunction:String = #function,whichLine:Int = #line) {
    let fileName = whichFile.suffix(from:whichFile.lastIndex(of: "/")!)
    
-   Logger.basicLog.error("ERROR \(fileName, privacy: .public)::\(whichFunction, privacy: .public)[\(whichLine, privacy: .public)] \(message, privacy: .public)")
+   Logger.basicLog.error("❌ ERROR \(fileName, privacy: .public)::\(whichFunction, privacy: .public)[\(whichLine, privacy: .public)] \(message, privacy: .public)")
 }
 
 func logWarn(_ message:String,whichFile:String = #file,whichFunction:String = #function,whichLine:Int = #line) {
    let fileName = whichFile.suffix(from:whichFile.lastIndex(of: "/")!)
    
-   Logger.basicLog.error("ERROR \(fileName, privacy: .public)::\(whichFunction, privacy: .public)[\(whichLine, privacy: .public)] \(message, privacy: .public)")
+   Logger.basicLog.error("⚠️ WARNING \(fileName, privacy: .public)::\(whichFunction, privacy: .public)[\(whichLine, privacy: .public)] \(message, privacy: .public)")
 }
 
 func info(whichFile:String = #file,whichFunction:String = #function,whichLine:Int = #line) {
    let fileName = whichFile.suffix(from:whichFile.lastIndex(of: "/")!)
-   Logger.basicLog.log("INFO \(fileName, privacy: .public)::\(whichFunction, privacy: .public)[\(whichLine, privacy: .public)]")
+   Logger.basicLog.log("ℹ️ INFO \(fileName, privacy: .public)::\(whichFunction, privacy: .public)[\(whichLine, privacy: .public)]")
 }
 
 func info(_ message:String,whichFile:String = #file,whichFunction:String = #function,whichLine:Int = #line) {
