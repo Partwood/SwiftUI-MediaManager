@@ -183,3 +183,72 @@ if isShowingOrganizePanel {
 2. **User Confirmation**: Always require confirmation
 3. **No Deletion**: Files only moved, never deleted
 4. **Backup Option**: Offer backup of original structure
+
+## Phase 3 Completion Status ✅
+
+### Completed Tasks:
+
+#### Task 1: Error Handling Improvements ✅
+- [x] Added detailed error messages in `OrganizeAndTagViewModel`
+- [x] Implemented retry mechanism for failed file operations
+- [x] Added error recovery suggestions
+- [x] Created error logging utility (using existing `Logging.swift`)
+
+#### Task 2: Edge Case Handling ✅
+- [x] Handle empty or invalid input gracefully
+- [x] Add file permission error handling
+- [x] Implement disk space checking
+- [ ] Add conflict resolution dialog for duplicate files (pending)
+
+#### Task 3: Progress & Feedback ✅
+- [x] Add progress tracking during organization
+- [x] Show detailed operation status
+- [ ] Implement cancel operation support (pending)
+- [x] Add operation completion summary
+
+#### Task 4: Documentation ⏳
+- [ ] Add README for feature usage
+- [ ] Create example input files
+- [ ] Document merge strategy options
+- [ ] Add troubleshooting guide
+
+## Updates Made
+
+### OrganizeAndTagViewModel.swift
+- Added progress tracking properties (`progress`, `operationStatus`, `isProcessing`)
+- Added retry mechanism with queue
+- Added input validation before processing
+- Added disk space checking
+- Enhanced error handling with retryable errors
+- Added completion summary display
+
+### FileOrganizer.swift
+- Added input validation (check for empty files, empty title)
+- Added disk space checking before organization
+- Added `checkDiskSpace()` helper method
+
+### Integration with FileBrowserView.swift
+- Organize & Tag button is now active when a directory is selected
+- OrganizeAndTagView is presented as a sheet when button is clicked
+
+## Next Steps
+
+### Remaining Tasks:
+1. **Conflict Resolution Dialog** - Add UI for handling duplicate files
+2. **Cancel Operation Support** - Allow users to cancel long-running operations
+3. **Documentation** - Create usage README and example files
+4. **Testing** - Add sample data and test cases
+
+## Usage
+
+To use the Organize & Tag feature:
+
+1. Select a directory in FileBrowserView
+2. Click the "Organize & Tag" button in the header
+3. Enter the DVDCompare content in the Import tab
+4. Select media type (TV Show or Movie)
+5. Enter show/movie title
+6. Click "Parse & Preview" to see what will be organized
+7. Review the preview in the Preview tab
+8. Click "Execute Organization" to proceed
+9. View results in the Results tab

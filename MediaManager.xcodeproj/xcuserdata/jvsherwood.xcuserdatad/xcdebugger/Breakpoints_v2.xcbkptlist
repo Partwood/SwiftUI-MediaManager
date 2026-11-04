@@ -52,51 +52,5 @@
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "E562F763-7DEE-4083-82AB-C65E0BAC701E"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "MediaManager/OrganizeAndTag/OrganizeAndTagViewModel.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "105"
-            endingLineNumber = "105"
-            landmarkName = "getFiles(at:)"
-            landmarkType = "7">
-            <Locations>
-               <Location
-                  uuid = "E562F763-7DEE-4083-82AB-C65E0BAC701E - 31b92283cf084885"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 (Any) -&gt; () in MediaManager.OrganizeAndTagViewModel.getFiles(at: Foundation.URL) throws -&gt; Swift.Array&lt;MediaManager.FileItem&gt;"
-                  moduleName = "MediaManager.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jvsherwood/projects/MediaManager/XCode%20Project/MediaManager/OrganizeAndTag/OrganizeAndTagViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "105"
-                  endingLineNumber = "105">
-               </Location>
-               <Location
-                  uuid = "E562F763-7DEE-4083-82AB-C65E0BAC701E - 31b92283cf084885"
-                  shouldBeEnabled = "Yes"
-                  ignoreCount = "0"
-                  continueAfterRunningActions = "No"
-                  symbolName = "closure #1 (Any) -&gt; () in MediaManager.OrganizeAndTagViewModel.getFiles(at: Foundation.URL) throws -&gt; Swift.Array&lt;MediaManager.FileItem&gt;"
-                  moduleName = "MediaManager.debug.dylib"
-                  usesParentBreakpointCondition = "Yes"
-                  urlString = "file:///Users/jvsherwood/projects/MediaManager/XCode%20Project/MediaManager/OrganizeAndTag/OrganizeAndTagViewModel.swift"
-                  startingColumnNumber = "9223372036854775807"
-                  endingColumnNumber = "9223372036854775807"
-                  startingLineNumber = "105"
-                  endingLineNumber = "105">
-               </Location>
-            </Locations>
-         </BreakpointContent>
-      </BreakpointProxy>
    </Breakpoints>
 </Bucket>

@@ -24,9 +24,24 @@ struct FileOrganizer {
         basePath: URL,
         mergeStrategy: MergeStrategy = .rename
     ) -> OrganizationResults {
+       var results = OrganizationResults()
+       
+        // Validate inputs
+        guard !files.isEmpty else {
+            results.warnings.append("No files found in base directory")
+            return results
+        }
+        guard content.title.isEmpty == false else {
+            results.warnings.append("Content title cannot be empty")
+            return results
+        }
         
-        var results = OrganizationResults()
-        
+        // Check disk space before proceeding
+        let diskSpaceWarning = checkDiskSpace(at: basePath, required: 500_000_000) // 500MB minimum
+        if let warning = diskSpaceWarning {
+            results.warnings.append(warning)
+        }
+
         // Create directory structure
         let seasonPath = createSeasonDirectory(
             for: content.season ?? 1,
@@ -450,7 +465,7 @@ struct FileOrganizer {
         mergeStrategy: MergeStrategy,
         results: inout OrganizationResults
     ) {
-        // Check if destination already exists
+            // Check if destination already exists
         if FileManager.default.fileExists(atPath: destination.path) {
             switch mergeStrategy {
             case .replace:
@@ -479,4 +494,20 @@ struct FileOrganizer {
             results.errors.append("Failed to move \(source.lastPathComponent): \(error.localizedDescription)")
         }
     }
+   
+   /// Check available disk space
+   private static func checkDiskSpace(at url: URL, required: UInt64) -> String? {
+      do {
+         let resourceValues = try url.resourceValues(forKeys: [.volumeAvailableCapacityKey])
+         if let available = resourceValues.volumeAvailableCapacity {
+            if available < required {
+               let availableMB = Double(available) / (1024 * 1024)
+               return "Insufficient disk space. Available: \(String(format: "%.1f", availableMB)) MB, Required: \(required / (1024 * 1024)) MB"
+            }
+         }
+      } catch {
+         print("Failed to check disk space: \(error.localizedDescription)")
+      }
+      return nil
+   }
 }
