@@ -19,8 +19,9 @@ struct ImportPanelView: View {
    @State var basePath: URL = URL(fileURLWithPath: "/Users")
    @State var mergeStrategy: MergeStrategy = .rename
    @State var isShowingFolderPicker: Bool = false
-   @State var organizationPreview: OrganizationPreview? = nil
-
+   @Binding var organizationPreview: OrganizationPreview?
+   @Binding var appTab: OrganizeAndTagView.AppTab
+   
     var body: some View {
         Form {
             // Content Type Selection
@@ -94,9 +95,9 @@ struct ImportPanelView: View {
             // Actions
             Section {
                 Button("Parse & Preview") {
-                   self.organizationPreview = nil
                    viewModel.parse(content: content, mediaType: selectedMediaType, startingEpisode: episodeNumber)
                    self.organizationPreview = viewModel.organizationPreview
+                   self.appTab = .preview_view
                    debug("Parsed")
                 }
                 .buttonStyle(.borderedProminent)
@@ -106,10 +107,6 @@ struct ImportPanelView: View {
                 }
                 .buttonStyle(.bordered)
             }
-           
-           if let organizationPreview = self.organizationPreview {
-              OrganizationPreviewView(preview: organizationPreview,basePath: basePath,mergeStrategy: mergeStrategy)
-           }
         }
         .formStyle(.grouped)
         .navigationTitle("Import Metadata")
@@ -120,5 +117,8 @@ struct ImportPanelView: View {
 }
 
 #Preview {
-   ImportPanelView()
+   @Previewable @State var organizationPreview: OrganizationPreview? = nil
+   @Previewable @State var appTab: OrganizeAndTagView.AppTab = .import_view
+   
+   ImportPanelView(organizationPreview: $organizationPreview,appTab: $appTab)
 }

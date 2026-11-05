@@ -9,22 +9,29 @@ import SwiftUI
 
 /// Main view for the Organize and Tag feature
 struct OrganizeAndTagView: View {
-    @StateObject private var viewModel = OrganizeAndTagViewModel()
-    @State private var content: String = ""
-    @State private var showTitle: String = ""
-    @State private var selectedMediaType: MediaType = .tvShow
-    @State private var seasonNumber: Int = 1
-    @State private var episodeNumber: Int = 1
-    @State private var basePath: URL = URL(fileURLWithPath: "/Users")
-    @State private var mergeStrategy: MergeStrategy = .rename
-    @State private var isShowingFolderPicker: Bool = false
-    @State private var organizationPreview: OrganizationPreview? = nil
-    @State private var showConfirmationDialog: Bool = false
-    @State private var processingState: ProcessingState = .idle
-    @State private var errorMessages: [String] = []
+   enum AppTab: Hashable {
+      case import_view
+      case preview_view
+      case results
+   }
+
+   @StateObject private var viewModel = OrganizeAndTagViewModel()
+   @State private var content: String = ""
+   @State private var showTitle: String = ""
+   @State private var selectedMediaType: MediaType = .tvShow
+   @State private var seasonNumber: Int = 1
+   @State private var episodeNumber: Int = 1
+   @State private var mergeStrategy: MergeStrategy = .rename
+   @State private var isShowingFolderPicker: Bool = false
+   @State private var showConfirmationDialog: Bool = false
+   @State private var processingState: ProcessingState = .idle
+   @State private var errorMessages: [String] = []
+   @State private var activeTab: AppTab = .import_view
     
+   let basePath: URL
+   
     var body: some View {
-        TabView {
+        TabView(selection: $activeTab) {
             // Import Panel Tab
             ImportPanelView(
                 content: content,
@@ -35,28 +42,32 @@ struct OrganizeAndTagView: View {
                 basePath: basePath,
                 mergeStrategy: mergeStrategy,
                 isShowingFolderPicker: isShowingFolderPicker,
-                organizationPreview: organizationPreview
+                organizationPreview: $viewModel.organizationPreview,
+                appTab: $activeTab
             )
-                .tabItem {
-                    Label("Import", systemImage: "tag")
-                }
-            
-            // Preview Tab
-            if let preview = organizationPreview {
-               OrganizationPreviewView(preview: preview,basePath: basePath,mergeStrategy: mergeStrategy)
+            .tabItem {
+               Label("Import", systemImage: "tag")
+            }
+            .tag(AppTab.import_view)
+
+            // MARK: Preview Tab
+           if let preview = viewModel.organizationPreview {
+              OrganizationPreviewView(appTab: $activeTab, preview: preview,basePath: basePath,mergeStrategy: mergeStrategy)
                     .tabItem {
                         Label("Preview", systemImage: "eye")
                     }
+                    .tag(AppTab.preview_view)
             } else {
                 EmptyView()
             }
             
-            // Results Tab
+            // MARK: Results Tab
             if let results = viewModel.organizationResults {
                 ResultsView(results: results)
                     .tabItem {
                         Label("Results", systemImage: "checkmark.circle")
                     }
+                    .tag(AppTab.results)
             } else {
                 EmptyView()
             }
@@ -87,5 +98,5 @@ struct OrganizeAndTagView: View {
 
 // MARK: - Preview
 #Preview {
-    OrganizeAndTagView()
+    OrganizeAndTagView(basePath: URL(fileURLWithPath: "/Users"))
 }

@@ -56,21 +56,6 @@ struct FileBrowserView: View {
    
    // Organize and Tag functionality
    @State var isShowingOrganizePanel: Bool = false
-   //@State private var importPanelView: ImportPanelView? = nil
-
-//   @StateObject private var organizeViewModel = OrganizeAndTagViewModel()
-//   @State private var organizeContent: String = ""
-//   @State private var organizeShowTitle: String = ""
-//   @State private var organizeMediaType: MediaType = .tvShow
-//   @State private var organizeSeasonNumber: Int = 1
-//   @State private var organizeEpisodeNumber: Int = 1
-//   @State private var organizeBasePath: URL = URL(fileURLWithPath: "/Users")
-//   @State private var organizeMergeStrategy: MergeStrategy = .rename
-//   @State private var organizeIsShowingFolderPicker: Bool = false
-//   @State private var organizeOrganizationPreview: OrganizationPreview? = nil
-//   @State private var organizeProcessingState: ProcessingState = .idle
-//   @State private var organizeErrorMessages: [String] = []
-//   @State private var organizeShowConfirmationDialog: Bool = false
 
    var body: some View {
       VStack(alignment: .leading, spacing: 12) {
@@ -104,40 +89,16 @@ struct FileBrowserView: View {
             }
             
             if let _ = self.rootDirectoryURL {
-               if let _ = self.rootDirectoryURL {
-                  Button(action: { isShowingOrganizePanel = true }) {
-                     Label("Organize & Tag", systemImage: "tag.fill")
-                  }
-                  .buttonStyle(.bordered)
-                  
-                  if isShowingOrganizePanel {
-                     OrganizeAndTagView()
-//                     OrganizeAndTagView(
-//                        organizeContent: $organizeContent,
-//                        organizeShowTitle: $organizeShowTitle,
-//                        organizeMediaType: $organizeMediaType,
-//                        organizeSeasonNumber: $organizeSeasonNumber,
-//                        organizeEpisodeNumber: $organizeEpisodeNumber,
-//                        organizeBasePath: $organizeBasePath,
-//                        organizeMergeStrategy: $organizeMergeStrategy,
-//                        organizeIsShowingFolderPicker: $organizeIsShowingFolderPicker,
-//                        organizeOrganizationPreview: $organizeOrganizationPreview,
-//                        organizeProcessingState: $organizeProcessingState,
-//                        organizeErrorMessages: $organizeErrorMessages,
-//                        organizeShowConfirmationDialog: $organizeShowConfirmationDialog
-//                     )
-                     .frame(minWidth: 600, minHeight: 400)
-                  }
+               let organizationPath: URL = URL(filePath: self.currentPath)
+               Button(action: { isShowingOrganizePanel = true }) {
+                  Label("Organize & Tag", systemImage: "tag.fill")
                }
+               .buttonStyle(.bordered)
                
-//               Button(action: { isShowingOrganizePanel = true }) {
-//                  Label("Organize & Tag", systemImage: "tag.fill")
-//               }
-//               .buttonStyle(.bordered)
-               
-//               if isShowingOrganizePanel {
-//                  ImportPanelView()
-//               }
+               if isShowingOrganizePanel {
+                  OrganizeAndTagView(basePath: organizationPath)
+                     .frame(minWidth: 600, minHeight: 400)
+               }
             }
          }
          .padding([.horizontal, .top])

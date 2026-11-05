@@ -1153,3 +1153,12 @@ Below are the phases that have been completed to date.
 - Phase 3
 - Phase 4
 - Phase 5
+
+## Functional Flow
+- FileBrowserView
+  - OrganizeAndTagView
+    - ImportPanelView
+      - OrganizationPreviewView
+    - OrganizationPreviewView
+    - ResultsView
+    - ConfirmationDialog

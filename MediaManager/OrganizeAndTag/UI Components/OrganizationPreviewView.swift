@@ -16,7 +16,9 @@ struct OrganizationPreviewView: View {
    @State private var showTitle: String = ""
    @State private var seasonNumber: Int = 1
    @State private var isShowingFolderPicker: Bool = false
-
+   
+   @Binding var appTab: OrganizeAndTagView.AppTab
+   
    let preview: OrganizationPreview
    let basePath: URL
    let mergeStrategy: MergeStrategy
@@ -138,6 +140,7 @@ struct OrganizationPreviewView: View {
          HStack(spacing: 12) {
             Button("Back") {
                // Navigate back
+               self.appTab = .import_view
             }
             .buttonStyle(.bordered)
             
@@ -159,7 +162,9 @@ struct OrganizationPreviewView: View {
 }
 
 #Preview {
-   OrganizationPreviewView(preview: OrganizationPreview(
+   @Previewable @State var appTab: OrganizeAndTagView.AppTab = .import_view
+   
+   let preview = OrganizationPreview(
       mediaType: .tvShow,
       title: "Test Show",
       mainMovieDuration: nil,
@@ -173,7 +178,9 @@ struct OrganizationPreviewView: View {
       director: nil,
       year: nil
    )
-                           , basePath: URL(fileURLWithPath: "/Users")
-                           , mergeStrategy: .rename
-   )
+   
+   OrganizationPreviewView(appTab: $appTab,
+                           preview: preview,
+                           basePath: URL(fileURLWithPath: "/Users"),
+                           mergeStrategy: .rename)
 }
