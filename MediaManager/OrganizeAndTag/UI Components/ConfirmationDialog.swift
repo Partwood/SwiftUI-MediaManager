@@ -27,18 +27,16 @@ struct ConfirmationDialog: View {
                 .foregroundColor(.secondary)
             
             List {
-               let filesMoved = results.filesMoved.count// {
-               Text("• Move \(filesMoved) file\(filesMoved == 1 ? "" : "s")")
-               let nfoFiles = results.nfoFilesCreated.count //{
-               Text("• Create \(nfoFiles) NFO file\(nfoFiles == 1 ? "" : "s")")
-               if !results.warnings.isEmpty {
-                  Text("• \(results.warnings.count) warning\(results.warnings.count == 1 ? "" : "s")")
-                     .foregroundColor(.orange)
-               }
-               if !results.errors.isEmpty {
-                  Text("• \(results.errors.count) error\(results.errors.count == 1 ? "" : "s")")
-                     .foregroundColor(.red)
-               }
+                Text("• Move \(results.filesMoved.count) file\(results.filesMoved.count == 1 ? "" : "s")")
+                Text("• Create \(results.nfoFilesCreated.count) NFO file\(results.nfoFilesCreated.count == 1 ? "" : "s")")
+                if !results.warnings.isEmpty {
+                    Text("• \(results.warnings.count) warning\(results.warnings.count == 1 ? "" : "s")")
+                        .foregroundColor(.orange)
+                }
+                if !results.errors.isEmpty {
+                    Text("• \(results.errors.count) error\(results.errors.count == 1 ? "" : "s")")
+                        .foregroundColor(.red)
+                }
             }
             .listStyle(.inset)
             

@@ -13,6 +13,7 @@ MediaManager is a macOS application designed to provide a file browser-like expe
 - **File Metadata Side Panel**: Detailed metadata display for images, videos (including MKV), and audio files.
 - **NFO File Support**: Detection and parsing of Jellyfin-compatible NFO files.
 - **Restructuring Operations**:
+- **Preview & Confirmation**: Show users what will be organized before execution, with confirmation dialog for safety
   - Categorize directories as movies, TV shows, or extras.
   - Move files based on criteria (e.g., duration thresholds).
 
