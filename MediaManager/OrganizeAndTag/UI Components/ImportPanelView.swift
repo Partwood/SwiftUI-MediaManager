@@ -25,6 +25,8 @@ struct ImportPanelView: View {
    @Binding var organizationResults: OrganizationResults?
    @Binding var appTab: OrganizeAndTagView.AppTab
    
+   let fileSystem: FileSystem
+   
     var body: some View {
         Form {
             // Content Type Selection
@@ -98,28 +100,30 @@ struct ImportPanelView: View {
             // Actions
             Section {
                 Button("Parse & Preview") {
-                   Task {
-                      viewModel.parse(content: content, mediaType: selectedMediaType, startingEpisode: episodeNumber)
-                      self.organizationPreview = viewModel.organizationPreview
-                      
-                      let organizeAndTagViewModel = OrganizeAndTagViewModel()
-                      organizeAndTagViewModel.organizationPreview = viewModel.organizationPreview
+                   viewModel.parse(content: content, mediaType: selectedMediaType, startingEpisode: episodeNumber)
+                   self.organizationPreview = viewModel.organizationPreview
+                   
+                   let organizeAndTagViewModel = OrganizeAndTagViewModel()
+                   organizeAndTagViewModel.organizationPreview = viewModel.organizationPreview
+                   
+                   fileSystem.accessURL(basePath, { accessibleURL in
+                      guard let url = accessibleURL else { return }
                       
                       do {
-                         self.organizationResults = try await organizeAndTagViewModel.executeOrganization(
+                         self.organizationResults = try organizeAndTagViewModel.executeOrganization(
                            preview: true,
                            mediaType: selectedMediaType,
                            showTitle: showTitle,
                            season: seasonNumber,
-                           basePath: basePath,
+                           basePath: url,
                            mergeStrategy: mergeStrategy)
                       } catch {
                          logError(error)
                       }
-                      
-                      self.appTab = .preview_view
-                      debug("Parsed")
-                   }
+                   })
+                   
+                   self.appTab = .preview_view
+                   debug("Parsed")
                 }
                 .buttonStyle(.borderedProminent)
                 
@@ -144,10 +148,13 @@ struct ImportPanelView: View {
    @Previewable @State var organizationResults: OrganizationResults? = nil
    @Previewable @State var appTab: OrganizeAndTagView.AppTab = .import_view
    
+   let fileSystem = FileSystem(URL(fileURLWithPath: "/Users"))
+   
    ImportPanelView(
       showOrganizePanel: $showOrganizePanel,
       organizationPreview: $organizationPreview,
       organizationResults: $organizationResults,
-      appTab: $appTab
+      appTab: $appTab,
+      fileSystem: fileSystem
    )
 }

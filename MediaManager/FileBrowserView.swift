@@ -88,7 +88,8 @@ struct FileBrowserView: View {
                                 fileBrowserView: self)
             }
             
-            if let _ = self.rootDirectoryURL {
+            if let rootURL = self.rootDirectoryURL {
+               let fileSystem = FileSystem(rootURL)
                let organizationPath: URL = URL(filePath: self.currentPath)
                Button(action: { showOrganizePanel = true }) {
                   Label("Organize & Tag", systemImage: "tag.fill")
@@ -96,8 +97,10 @@ struct FileBrowserView: View {
                .buttonStyle(.bordered)
                
                if showOrganizePanel {
-                  OrganizeAndTagView(showOrganizePanel: $showOrganizePanel,basePath: organizationPath)
-                     .frame(minWidth: 600, minHeight: 400)
+                  OrganizeAndTagView(showOrganizePanel: $showOrganizePanel,
+                                     basePath: organizationPath,
+                                     fileSystem: fileSystem)
+                  .frame(minWidth: 600, minHeight: 400)
                }
             }
          }

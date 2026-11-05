@@ -31,6 +31,7 @@ struct OrganizeAndTagView: View {
    @Binding var showOrganizePanel: Bool
     
    let basePath: URL
+   let fileSystem: FileSystem
    
     var body: some View {
         TabView(selection: $activeTab) {
@@ -47,7 +48,8 @@ struct OrganizeAndTagView: View {
                 showOrganizePanel: $showOrganizePanel,
                 organizationPreview: $viewModel.organizationPreview,
                 organizationResults: $viewModel.organizationResults,
-                appTab: $activeTab
+                appTab: $activeTab,
+                fileSystem: fileSystem
             )
             .tabItem {
                Label("Import", systemImage: "tag")
@@ -110,5 +112,9 @@ struct OrganizeAndTagView: View {
 #Preview {
    @Previewable @State var showOrganizePanel: Bool = false
    
-   OrganizeAndTagView(showOrganizePanel: $showOrganizePanel,basePath: URL(fileURLWithPath: "/Users"))
+   let fileSystem = FileSystem(URL(fileURLWithPath: "/Users"))
+   
+   OrganizeAndTagView(showOrganizePanel: $showOrganizePanel,
+                      basePath: URL(fileURLWithPath: "/Users"),
+                      fileSystem: fileSystem)
 }

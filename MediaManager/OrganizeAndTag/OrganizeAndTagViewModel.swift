@@ -57,7 +57,7 @@ class OrganizeAndTagViewModel: ObservableObject {
       season: Int?,
       basePath: URL,
       mergeStrategy: MergeStrategy
-   ) async throws -> OrganizationResults {
+   ) /*async*/ throws -> OrganizationResults {
       processingState = .processing
       progress = 0
       operationStatus = "Starting organization..."
@@ -81,6 +81,7 @@ class OrganizeAndTagViewModel: ObservableObject {
          guard let organization_preview = organizationPreview else {
             throw OrganizeAndTagError.noPreview
          }
+         
          if mediaType == .tvShow {
             results = FileOrganizer.organizeTVShow(
                preview: preview,
@@ -281,18 +282,35 @@ class OrganizeAndTagViewModel: ObservableObject {
    private func getFiles(at url: URL) throws -> [FileItem] {
       var files: [FileItem] = []
       
-      /*try*/ FileManager.default.enumerator(
+      if let enumerator = FileManager.default.enumerator(
          at: url,
          includingPropertiesForKeys: [.isRegularFileKey],
          options: [.skipsHiddenFiles]
-      )?.forEach({ item in
-         if let fileURL = item as? URL {
-            let fileItem = FileItem(url: fileURL)
-            files.append(fileItem)
-         }
-         //guard let fileItem = FileItem(url: item!.asURL) else { return }
-         //files.append(fileItem)
-      })
+      ) {
+         enumerator.forEach({ item in
+            if let fileURL = item as? URL {
+               let fileItem = FileItem(url: fileURL)
+               files.append(fileItem)
+            }
+            //guard let fileItem = FileItem(url: item!.asURL) else { return }
+            //files.append(fileItem)
+         })
+      } else {
+         logWarn("No enumerator")
+      }
+      
+//      /*try*/ FileManager.default.enumerator(
+//         at: url,
+//         includingPropertiesForKeys: [.isRegularFileKey],
+//         options: [.skipsHiddenFiles]
+//      )?.forEach({ item in
+//         if let fileURL = item as? URL {
+//            let fileItem = FileItem(url: fileURL)
+//            files.append(fileItem)
+//         }
+//         //guard let fileItem = FileItem(url: item!.asURL) else { return }
+//         //files.append(fileItem)
+//      })
 //        )?.enumerateDirectoryContents { item in
 //            guard let fileItem = FileItem(url: item!.asURL) else { return }
 //            files.append(fileItem)
