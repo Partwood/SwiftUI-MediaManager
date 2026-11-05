@@ -19,7 +19,10 @@ struct ImportPanelView: View {
    @State var basePath: URL = URL(fileURLWithPath: "/Users")
    @State var mergeStrategy: MergeStrategy = .rename
    @State var isShowingFolderPicker: Bool = false
+   
+   @Binding var showOrganizePanel: Bool
    @Binding var organizationPreview: OrganizationPreview?
+   @Binding var organizationResults: OrganizationResults?
    @Binding var appTab: OrganizeAndTagView.AppTab
    
     var body: some View {
@@ -95,15 +98,34 @@ struct ImportPanelView: View {
             // Actions
             Section {
                 Button("Parse & Preview") {
-                   viewModel.parse(content: content, mediaType: selectedMediaType, startingEpisode: episodeNumber)
-                   self.organizationPreview = viewModel.organizationPreview
-                   self.appTab = .preview_view
-                   debug("Parsed")
+                   Task {
+                      viewModel.parse(content: content, mediaType: selectedMediaType, startingEpisode: episodeNumber)
+                      self.organizationPreview = viewModel.organizationPreview
+                      
+                      let organizeAndTagViewModel = OrganizeAndTagViewModel()
+                      organizeAndTagViewModel.organizationPreview = viewModel.organizationPreview
+                      
+                      do {
+                         self.organizationResults = try await organizeAndTagViewModel.executeOrganization(
+                           preview: true,
+                           mediaType: selectedMediaType,
+                           showTitle: showTitle,
+                           season: seasonNumber,
+                           basePath: basePath,
+                           mergeStrategy: mergeStrategy)
+                      } catch {
+                         logError(error)
+                      }
+                      
+                      self.appTab = .preview_view
+                      debug("Parsed")
+                   }
                 }
                 .buttonStyle(.borderedProminent)
                 
                 Button("Cancel") {
                     // Cancel action
+                   showOrganizePanel = false
                 }
                 .buttonStyle(.bordered)
             }
@@ -117,8 +139,15 @@ struct ImportPanelView: View {
 }
 
 #Preview {
+   @Previewable @State var showOrganizePanel: Bool = false
    @Previewable @State var organizationPreview: OrganizationPreview? = nil
+   @Previewable @State var organizationResults: OrganizationResults? = nil
    @Previewable @State var appTab: OrganizeAndTagView.AppTab = .import_view
    
-   ImportPanelView(organizationPreview: $organizationPreview,appTab: $appTab)
+   ImportPanelView(
+      showOrganizePanel: $showOrganizePanel,
+      organizationPreview: $organizationPreview,
+      organizationResults: $organizationResults,
+      appTab: $appTab
+   )
 }

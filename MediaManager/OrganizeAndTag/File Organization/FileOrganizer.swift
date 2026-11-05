@@ -19,6 +19,7 @@ struct FileOrganizer {
     ///   - mergeStrategy: How to handle existing files
     /// - Returns: Results of the organization operation
     static func organizeTVShow(
+      preview: Bool,
         files: [FileItem],
         content: DVDCompareContent,
         basePath: URL,
@@ -43,10 +44,11 @@ struct FileOrganizer {
         }
 
         // Create directory structure
-        let seasonPath = createSeasonDirectory(
-            for: content.season ?? 1,
-            at: basePath
-        )
+       let seasonPath = basePath
+//        let seasonPath = createSeasonDirectory(
+//            for: content.season ?? 1,
+//            at: basePath
+//        )
         
         // Create extras directory
         let extrasPath = createExtrasDirectory(at: seasonPath)
@@ -57,6 +59,7 @@ struct FileOrganizer {
         // Organize episodes
         for episode in content.episodes {
             organizeEpisode(
+               preview: preview,
                 episode: episode,
                 files: files,
                 basePath: seasonPath,
@@ -67,6 +70,7 @@ struct FileOrganizer {
         
         // Organize extras
         organizeExtras(
+         preview: preview,
             extras: content.commentaries + content.deletedScenes + content.musicVideos + content.trailers,
             basePath: extrasPath,
             mergeStrategy: mergeStrategy,
@@ -75,6 +79,7 @@ struct FileOrganizer {
         
         // Generate NFO files
         generateNFOFiles(
+         preview: preview,
             episodes: content.episodes,
             showTitle: content.title,
             season: content.season ?? 1,
@@ -94,6 +99,7 @@ struct FileOrganizer {
     ///   - mergeStrategy: How to handle existing files
     /// - Returns: Results of the organization operation
     static func organizeMovie(
+      preview: Bool,
         files: [FileItem],
         content: DVDCompareContent,
         basePath: URL,
@@ -108,6 +114,7 @@ struct FileOrganizer {
         // Find and move main movie (longest file)
         if let mainMovie = findMainMovie(files: files, content: content) {
             moveFile(
+               preview: preview,
                 from: mainMovie.url,
                 to: basePath.appendingPathComponent(mainMovie.name),
                 mergeStrategy: mergeStrategy,
@@ -116,6 +123,7 @@ struct FileOrganizer {
             
             // Generate movie NFO
             generateMovieNFO(
+               preview: preview,
                 title: content.title,
                 plot: content.plot,
                 year: content.year,
@@ -129,6 +137,7 @@ struct FileOrganizer {
         
         // Organize extras
         organizeExtras(
+         preview: preview,
             extras: content.extras,
             basePath: extrasPath,
             mergeStrategy: mergeStrategy,
@@ -211,6 +220,7 @@ struct FileOrganizer {
     
     /// Organizes a single episode
     private static func organizeEpisode(
+      preview: Bool,
         episode: Episode,
         files: [FileItem],
         basePath: URL,
@@ -233,20 +243,24 @@ struct FileOrganizer {
             alternativeCut: episode.alternativeCut
         )
         
-        // Move and rename file
-        let destination = basePath.appendingPathComponent(newFilename)
-        moveFile(
+       if !preview {
+          // Move and rename file
+          let destination = basePath.appendingPathComponent(newFilename)
+          moveFile(
+            preview: preview,
             from: file.url,
             to: destination,
             mergeStrategy: mergeStrategy,
             results: &results
-        )
+          )
+       }
         
         results.filesMoved.append(file)
     }
     
     /// Organizes extras
     private static func organizeExtras(
+      preview: Bool,
         extras: [Extra],
         basePath: URL,
         mergeStrategy: MergeStrategy,
@@ -265,14 +279,17 @@ struct FileOrganizer {
             // Generate new filename
             let newFilename = generateExtraFilename(extra: extra)
             
-            // Move and rename file
-            let destination = basePath.appendingPathComponent(newFilename)
-            moveFile(
-                from: file.url,
-                to: destination,
-                mergeStrategy: mergeStrategy,
-                results: &results
-            )
+           if !preview {
+              // Move and rename file
+              let destination = basePath.appendingPathComponent(newFilename)
+              moveFile(
+               preview: preview,
+               from: file.url,
+               to: destination,
+               mergeStrategy: mergeStrategy,
+               results: &results
+              )
+           }
             
             results.filesMoved.append(file)
         }
@@ -280,6 +297,7 @@ struct FileOrganizer {
     
     /// Generates NFO files for episodes
     private static func generateNFOFiles(
+      preview: Bool,
         episodes: [Episode],
         showTitle: String,
         season: Int,
@@ -297,6 +315,7 @@ struct FileOrganizer {
                     switch mergeStrategy {
                     case .replace:
                         let url = try NFOGenerator.generateEpisodeNFO(
+                           preview: preview,
                             episode: episode,
                             showTitle: showTitle,
                             season: season,
@@ -311,6 +330,7 @@ struct FileOrganizer {
                             .appendingPathComponent("\(url.lastPathComponent) (Old)")
                         try FileManager.default.moveItem(at: oldURL, to: newURL)
                        let url = try NFOGenerator.generateEpisodeNFO(
+                        preview: preview,
                             episode: episode,
                             showTitle: showTitle,
                             season: season,
@@ -323,6 +343,7 @@ struct FileOrganizer {
                     }
                 } else {
                    let url = try NFOGenerator.generateEpisodeNFO(
+                     preview: preview,
                         episode: episode,
                         showTitle: showTitle,
                         season: season,
@@ -338,6 +359,7 @@ struct FileOrganizer {
     
     /// Generates movie NFO
     private static func generateMovieNFO(
+      preview: Bool,
         title: String,
         plot: String?,
         year: Int?,
@@ -355,6 +377,7 @@ struct FileOrganizer {
                 switch mergeStrategy {
                 case .replace:
                     _ = try NFOGenerator.generateMovieNFO(
+                     preview: preview,
                         title: title,
                         plot: plot,
                         year: year,
@@ -371,6 +394,7 @@ struct FileOrganizer {
                         .appendingPathComponent("\(url.lastPathComponent) (Old)")
                     try FileManager.default.moveItem(at: oldURL, to: newURL)
                    _ = try NFOGenerator.generateMovieNFO(
+                     preview: preview,
                         title: title,
                         plot: plot,
                         year: year,
@@ -384,6 +408,7 @@ struct FileOrganizer {
                 }
             } else {
                _ = try NFOGenerator.generateMovieNFO(
+                  preview: preview,
                     title: title,
                     plot: plot,
                     year: year,
@@ -460,6 +485,7 @@ struct FileOrganizer {
     
     /// Moves a file with optional rename
     private static func moveFile(
+      preview: Bool,
         from source: URL,
         to destination: URL,
         mergeStrategy: MergeStrategy,
@@ -469,7 +495,9 @@ struct FileOrganizer {
         if FileManager.default.fileExists(atPath: destination.path) {
             switch mergeStrategy {
             case .replace:
-                try? FileManager.default.removeItem(at: destination)
+               if !preview {
+                  try? FileManager.default.removeItem(at: destination)
+               }
                 fallthrough
             case .skip:
                 // Skip moving
@@ -477,9 +505,11 @@ struct FileOrganizer {
                 return
             case .rename:
                 // Rename existing file
-                let existingFile = destination.deletingLastPathComponent()
-                    .appendingPathComponent("\(destination.lastPathComponent) (Old)")
-                try? FileManager.default.moveItem(at: destination, to: existingFile)
+               if !preview {
+                  let existingFile = destination.deletingLastPathComponent()
+                     .appendingPathComponent("\(destination.lastPathComponent) (Old)")
+                  try? FileManager.default.moveItem(at: destination, to: existingFile)
+               }
                 fallthrough
             case .mergeMetadata:
                 // Fall through to move
@@ -488,7 +518,9 @@ struct FileOrganizer {
         }
         
         do {
-            try FileManager.default.moveItem(at: source, to: destination)
+           if !preview {
+              try FileManager.default.moveItem(at: source, to: destination)
+           }
             results.filesMoved.append(FileItem(url: source))
         } catch {
             results.errors.append("Failed to move \(source.lastPathComponent): \(error.localizedDescription)")

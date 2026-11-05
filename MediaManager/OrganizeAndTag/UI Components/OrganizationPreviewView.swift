@@ -10,7 +10,6 @@ import Combine
 
 /// Preview view showing what will be organized
 struct OrganizationPreviewView: View {
-   @StateObject private var viewModel = OrganizeAndTagViewModel()
    @State private var showConfirmationDialog: Bool = false
    @State private var selectedMediaType: MediaType = .tvShow
    @State private var showTitle: String = ""
@@ -22,6 +21,7 @@ struct OrganizationPreviewView: View {
    let preview: OrganizationPreview
    let basePath: URL
    let mergeStrategy: MergeStrategy
+   let results: OrganizationResults
 
    var body: some View {
       VStack(alignment: .leading, spacing: 16) {
@@ -153,7 +153,7 @@ struct OrganizationPreviewView: View {
       .padding()
       .sheet(isPresented: $showConfirmationDialog) {
          ConfirmationDialog(
-            results: OrganizationResults(),
+            results: results,
             mediaType: selectedMediaType,
             title: showTitle
          )
@@ -179,8 +179,11 @@ struct OrganizationPreviewView: View {
       year: nil
    )
    
+   let results = OrganizationResults(filesMoved: [], nfoFilesCreated: [], warnings: [], errors: [])
+   
    OrganizationPreviewView(appTab: $appTab,
                            preview: preview,
                            basePath: URL(fileURLWithPath: "/Users"),
-                           mergeStrategy: .rename)
+                           mergeStrategy: .rename,
+                           results: results)
 }

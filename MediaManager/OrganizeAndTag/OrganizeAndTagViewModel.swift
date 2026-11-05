@@ -51,6 +51,7 @@ class OrganizeAndTagViewModel: ObservableObject {
    
         /// Execute the organization operation with progress tracking
     func executeOrganization(
+        preview: Bool,
         mediaType: MediaType,
         showTitle: String,
         season: Int?,
@@ -77,21 +78,22 @@ class OrganizeAndTagViewModel: ObservableObject {
             
             var results: OrganizationResults
             
+           guard let organization_preview = organizationPreview else {
+              throw OrganizeAndTagError.noPreview
+           }
             if mediaType == .tvShow {
-                guard let preview = organizationPreview else {
-                    throw OrganizeAndTagError.noPreview
-                }
-                
                 results = FileOrganizer.organizeTVShow(
+                  preview: preview,
                     files: files,
-                    content: createContent(from: preview, showTitle: showTitle),
+                    content: createContent(from: organization_preview, showTitle: showTitle),
                     basePath: basePath,
                     mergeStrategy: mergeStrategy
                 )
             } else {
                 results = FileOrganizer.organizeMovie(
+                  preview: preview,
                     files: files,
-                    content: createContent(from: organizationPreview ?? OrganizationPreview(), showTitle: showTitle),
+                    content: createContent(from: organization_preview, showTitle: showTitle),
                     basePath: basePath,
                     mergeStrategy: mergeStrategy
                 )

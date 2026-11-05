@@ -18,6 +18,7 @@ struct NFOGenerator {
     ///   - basePath: Base directory path
     /// - Returns: URL to the generated NFO file
     static func generateEpisodeNFO(
+      preview: Bool,
         episode: Episode,
         showTitle: String,
         season: Int,
@@ -26,19 +27,22 @@ struct NFOGenerator {
         let filename = "\(episode.episodeNumber) - \(episode.title).nfo"
         let url = basePath.appendingPathComponent(filename)
         
-        // Create parent directory if needed
-        try FileManager.default.createDirectory(
+       if !preview {
+          // Create parent directory if needed
+          try FileManager.default.createDirectory(
             at: url.deletingLastPathComponent(),
             withIntermediateDirectories: true
-        )
-        
-        let content = generateEpisodeNFOContent(
+          )
+          
+          let content = generateEpisodeNFOContent(
             episode: episode,
             showTitle: showTitle,
             season: season
-        )
-        
-        try content.write(to: url, atomically: true, encoding: .utf8)
+          )
+          
+          try content.write(to: url, atomically: true, encoding: .utf8)
+       }
+       
         return url
     }
     
@@ -52,6 +56,7 @@ struct NFOGenerator {
     ///   - basePath: Base directory path
     /// - Returns: URL to the generated NFO file
     static func generateMovieNFO(
+      preview: Bool,
         title: String,
         plot: String?,
         year: Int?,
@@ -62,21 +67,23 @@ struct NFOGenerator {
         let filename = "\(title).nfo"
         let url = basePath.appendingPathComponent(filename)
         
-        // Create parent directory if needed
-        try FileManager.default.createDirectory(
+       if !preview {
+          // Create parent directory if needed
+          try FileManager.default.createDirectory(
             at: url.deletingLastPathComponent(),
             withIntermediateDirectories: true
-        )
-        
-        let content = generateMovieNFOContent(
+          )
+          
+          let content = generateMovieNFOContent(
             title: title,
             plot: plot,
             year: year,
             director: director,
             runtime: runtime
-        )
-        
-        try content.write(to: url, atomically: true, encoding: .utf8)
+          )
+          
+          try content.write(to: url, atomically: true, encoding: .utf8)
+       }
         return url
     }
    

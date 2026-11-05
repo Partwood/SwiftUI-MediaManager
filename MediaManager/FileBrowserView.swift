@@ -55,7 +55,7 @@ struct FileBrowserView: View {
    @State var showPasteProgress: Bool = false
    
    // Organize and Tag functionality
-   @State var isShowingOrganizePanel: Bool = false
+   @State var showOrganizePanel: Bool = false
 
    var body: some View {
       VStack(alignment: .leading, spacing: 12) {
@@ -90,13 +90,13 @@ struct FileBrowserView: View {
             
             if let _ = self.rootDirectoryURL {
                let organizationPath: URL = URL(filePath: self.currentPath)
-               Button(action: { isShowingOrganizePanel = true }) {
+               Button(action: { showOrganizePanel = true }) {
                   Label("Organize & Tag", systemImage: "tag.fill")
                }
                .buttonStyle(.bordered)
                
-               if isShowingOrganizePanel {
-                  OrganizeAndTagView(basePath: organizationPath)
+               if showOrganizePanel {
+                  OrganizeAndTagView(showOrganizePanel: $showOrganizePanel,basePath: organizationPath)
                      .frame(minWidth: 600, minHeight: 400)
                }
             }

@@ -27,6 +27,8 @@ struct OrganizeAndTagView: View {
    @State private var processingState: ProcessingState = .idle
    @State private var errorMessages: [String] = []
    @State private var activeTab: AppTab = .import_view
+   
+   @Binding var showOrganizePanel: Bool
     
    let basePath: URL
    
@@ -42,7 +44,9 @@ struct OrganizeAndTagView: View {
                 basePath: basePath,
                 mergeStrategy: mergeStrategy,
                 isShowingFolderPicker: isShowingFolderPicker,
+                showOrganizePanel: $showOrganizePanel,
                 organizationPreview: $viewModel.organizationPreview,
+                organizationResults: $viewModel.organizationResults,
                 appTab: $activeTab
             )
             .tabItem {
@@ -51,12 +55,18 @@ struct OrganizeAndTagView: View {
             .tag(AppTab.import_view)
 
             // MARK: Preview Tab
-           if let preview = viewModel.organizationPreview {
-              OrganizationPreviewView(appTab: $activeTab, preview: preview,basePath: basePath,mergeStrategy: mergeStrategy)
-                    .tabItem {
-                        Label("Preview", systemImage: "eye")
-                    }
-                    .tag(AppTab.preview_view)
+           if let preview = viewModel.organizationPreview,
+              let results = viewModel.organizationResults {
+              OrganizationPreviewView(
+               appTab: $activeTab,
+               preview: preview,
+               basePath: basePath,
+               mergeStrategy: mergeStrategy,
+               results: results)
+              .tabItem {
+                 Label("Preview", systemImage: "eye")
+              }
+              .tag(AppTab.preview_view)
             } else {
                 EmptyView()
             }
@@ -73,13 +83,13 @@ struct OrganizeAndTagView: View {
             }
         }
         .navigationTitle("Organize & Tag")
-        .sheet(isPresented: $showConfirmationDialog) {
-            ConfirmationDialog(
-                results: viewModel.organizationResults ?? OrganizationResults(),
-                mediaType: selectedMediaType,
-                title: showTitle
-            )
-        }
+//        .sheet(isPresented: $showConfirmationDialog) {
+//            ConfirmationDialog(
+//                results: viewModel.organizationResults ?? OrganizationResults(),
+//                mediaType: selectedMediaType,
+//                title: showTitle
+//            )
+//        }
         .alert("Processing Error", isPresented: .constant(!errorMessages.isEmpty)) {
             ForEach(errorMessages, id: \.self) { error in
                 Button(error) { }
@@ -98,5 +108,7 @@ struct OrganizeAndTagView: View {
 
 // MARK: - Preview
 #Preview {
-    OrganizeAndTagView(basePath: URL(fileURLWithPath: "/Users"))
+   @Previewable @State var showOrganizePanel: Bool = false
+   
+   OrganizeAndTagView(showOrganizePanel: $showOrganizePanel,basePath: URL(fileURLWithPath: "/Users"))
 }
