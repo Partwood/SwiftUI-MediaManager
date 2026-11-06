@@ -111,10 +111,8 @@ struct ImportPanelView: View {
                       
                       do {
                          self.organizationResults = try organizeAndTagViewModel.executeOrganization(
+                           fileSystem: fileSystem,
                            preview: true,
-                           mediaType: selectedMediaType,
-                           showTitle: showTitle,
-                           season: seasonNumber,
                            basePath: url,
                            mergeStrategy: mergeStrategy)
                       } catch {

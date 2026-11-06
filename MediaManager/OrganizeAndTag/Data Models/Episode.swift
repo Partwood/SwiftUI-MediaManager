@@ -12,7 +12,7 @@ struct Episode: Codable, Identifiable {
     var id: String { title }
     
     var title: String
-    var duration: TimeInterval
+    var duration: TimeInterval?
     var episodeNumber: Int
     var alternativeCut: Bool?
     var isDeletedScene: Bool?

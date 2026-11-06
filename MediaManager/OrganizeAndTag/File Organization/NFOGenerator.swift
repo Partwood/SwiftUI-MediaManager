@@ -142,12 +142,18 @@ struct NFOGenerator {
         showTitle: String,
         season: Int
     ) -> String {
-       let divDuration3600 = episode.duration.truncatingRemainder(dividingBy: 3600.0)
-       let divDuration60 = episode.duration.truncatingRemainder(dividingBy: 60.0)
-        let runtime = episode.duration > 3600 ?
-       String(format: "%d:%02d", episode.duration / 3600.0, divDuration3600 / 60.0) :
-       String(format: "%02d:%02d", (episode.duration / 60.0).truncatingRemainder(dividingBy: 60.0), divDuration60)
-
+       
+       let runtime: String
+       if let duration = episode.duration {
+          let divDuration3600 = duration.truncatingRemainder(dividingBy: 3600.0)
+          let divDuration60 = duration.truncatingRemainder(dividingBy: 60.0)
+          runtime = duration > 3600 ?
+          String(format: "%d:%02d", duration / 3600.0, divDuration3600 / 60.0) :
+          String(format: "%02d:%02d", (duration / 60.0).truncatingRemainder(dividingBy: 60.0), divDuration60)
+       } else {
+          runtime = "0:00"
+       }
+       
        let episodeTitle: String
        if let alternativeCut = episode.alternativeCut {
           let cutPart = alternativeCut ? "Alternative Cut" : ""
@@ -172,7 +178,7 @@ struct NFOGenerator {
           rating = ""
        }
 
-       var content =
+       let content =
                """
                <?xml version="1.0" encoding="UTF-8"?>
                <episodedetails>

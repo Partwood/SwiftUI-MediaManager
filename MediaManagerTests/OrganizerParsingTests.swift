@@ -1,14 +1,14 @@
 //
-//  MediaManagerTests.swift
-//  MediaManagerTests
+//  OrganizerParsingTests.swift
+//  OrganizerParsingTests
 //
-//  Created by Joshua V Sherwood on 11/1/26.
+//  Copyright © 2026 JVSherwood. All rights reserved.
 //
 
 import Testing
 @testable import MediaManager
 
-struct OrganizerTests {
+struct OrganizerParsingTests {
 
     @Test func simpleEpisode() async throws {
         // Write your test here and use APIs like `#expect(...)` to check expected conditions.

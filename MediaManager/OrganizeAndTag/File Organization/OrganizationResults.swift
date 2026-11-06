@@ -9,7 +9,13 @@ import Foundation
 
 /// Results of an organization operation
 struct OrganizationResults {
-    var filesMoved: [FileItem] = []
+   struct MovedFile: Identifiable {
+      var id = UUID()
+      var src: FileItem
+      var dst: FileItem
+   }
+   
+   var filesMoved: [MovedFile] = []
     var nfoFilesCreated: [URL] = []
     var warnings: [String] = []
     var errors: [String] = []

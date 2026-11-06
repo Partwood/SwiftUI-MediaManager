@@ -269,7 +269,7 @@ extension FileSystem {
       }
    }
    
-   private func getAttributes(fileManager: FileManager,decodedRoot: String,file: URL,simple: Bool) throws -> FileAttributes {
+   private func getAttributes(fileManager: FileManager,file: URL) throws -> FileAttributes {
       let decodedPath: String = (file.path() as NSString).removingPercentEncoding ?? file.path()
       
       let attributes = try fileManager.attributesOfItem(atPath: decodedPath)
@@ -297,7 +297,7 @@ extension FileSystem {
       if ( pathURL.isExisting() ) {
          do {
             if ( try pathURL.isExistingFile() ) {
-               let fileAttributes = try getAttributes(fileManager: fileManager, decodedRoot: decodedRoot, file: pathURL,simple: true)
+               let fileAttributes = try getAttributes(fileManager: fileManager, file: pathURL)
                
                files.append(File(url: pathURL, attributes: fileAttributes))
                
@@ -327,7 +327,7 @@ extension FileSystem {
             }
             
             do {
-               let fileAttributes = try getAttributes(fileManager: fileManager, decodedRoot: decodedRoot, file: file, simple: true)
+               let fileAttributes = try getAttributes(fileManager: fileManager, file: file)
                
                return File(url: file, attributes: fileAttributes)
             } catch {
@@ -345,11 +345,15 @@ extension FileSystem {
    }
    
    func info(at inPath: String,name: String) throws -> FileAttributes {
-      let fileManager = FileManager.default
-      
       let path = NSString(string: inPath).expandingTildeInPath
       let decodedRoot: String = path.removingPercentEncoding ?? path
       let pathURL = URL(fileURLWithPath: decodedRoot).appendingPathComponent(name)
+
+      return try info(pathURL)
+   }
+
+   func info(_ pathURL: URL) throws -> FileAttributes {
+      let fileManager = FileManager.default
       
       if ( !pathURL.isExisting() ) {
          let missing = FileIOError.directory_not_found(pathURL)
@@ -358,7 +362,7 @@ extension FileSystem {
       }
       
       do {
-         let value = try getAttributes(fileManager: fileManager, decodedRoot: decodedRoot, file: pathURL,simple: false)
+         let value = try getAttributes(fileManager: fileManager, file: pathURL)
          return value
       } catch {
          logError(error)

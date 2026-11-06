@@ -67,6 +67,11 @@ class DirectMKVParser {
       try? fileHandle.close()
    }
    
+   static func isMKV(_ url: URL) -> Bool {
+      let ext = url.pathExtension.lowercased()
+      return ext == "mkv"
+   }
+   
    func getMatroskaVersion() -> Int? {
       // Read the first 2KB, which is more than enough for the EBML header
       guard let data = try? fileHandle.read(upToCount: 2048) else { return nil }

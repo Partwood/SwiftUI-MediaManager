@@ -50,16 +50,20 @@ struct FileOrganizer {
 //            at: basePath
 //        )
         
-        // Create extras directory
-        let extrasPath = createExtrasDirectory(at: seasonPath)
-        
-        // Create subdirectories for different extra types
-        createExtraSubdirectories(at: extrasPath)
-        
+       // Create extras directory
+       let extrasPath = createExtrasDirectory(preview: preview,at: seasonPath)
+       if !preview {
+          // Create subdirectories for different extra types
+          createExtraSubdirectories(at: extrasPath)
+       }
+       
+       let startingEpisode = content.episodes.min(by: { e1,e2 in e1.episodeNumber < e2.episodeNumber })
+       
         // Organize episodes
         for episode in content.episodes {
             organizeEpisode(
                preview: preview,
+               minEpisodeNumber: (startingEpisode?.episodeNumber ?? 1),
                 episode: episode,
                 files: files,
                 basePath: seasonPath,
@@ -72,10 +76,25 @@ struct FileOrganizer {
         organizeExtras(
          preview: preview,
             extras: content.commentaries + content.deletedScenes + content.musicVideos + content.trailers,
+         files: files,
             basePath: extrasPath,
             mergeStrategy: mergeStrategy,
             results: &results
         )
+       
+       files.filter({ fileItem in
+          !fileItem.isDirectory &&
+          !results.filesMoved.contains(where: { movedFile in
+             movedFile.src.url == fileItem.url
+          })
+       }).forEach({ remainingFile in
+          let newFilename = extrasPath.appendingPathComponent(remainingFile.url.lastPathComponent)
+          moveFile(preview: preview,
+                   from: remainingFile.url,
+                   to: newFilename,
+                   mergeStrategy: mergeStrategy,
+                   results: &results)
+       })
         
         // Generate NFO files
         generateNFOFiles(
@@ -109,7 +128,7 @@ struct FileOrganizer {
         var results = OrganizationResults()
         
         // Create extras directory
-        let extrasPath = createExtrasDirectory(at: basePath)
+       let extrasPath = createExtrasDirectory(preview: preview, at: basePath)
         
         // Find and move main movie (longest file)
         if let mainMovie = findMainMovie(files: files, content: content) {
@@ -139,6 +158,7 @@ struct FileOrganizer {
         organizeExtras(
          preview: preview,
             extras: content.extras,
+         files: files,
             basePath: extrasPath,
             mergeStrategy: mergeStrategy,
             results: &results
@@ -168,19 +188,23 @@ struct FileOrganizer {
     }
     
     /// Creates the extras directory
-    private static func createExtrasDirectory(at basePath: URL) -> URL {
-        let extrasPath = basePath.appendingPathComponent("extras")
-        
-        do {
-            try FileManager.default.createDirectory(
-                at: extrasPath,
-                withIntermediateDirectories: true
-            )
-            return extrasPath
-        } catch {
-            logError(error)
-            return basePath
-        }
+   private static func createExtrasDirectory(preview: Bool,
+                                             at basePath: URL) -> URL {
+      let extrasPath = basePath.appendingPathComponent("extras")
+      if preview {
+         return extrasPath
+      }
+      
+      do {
+         try FileManager.default.createDirectory(
+            at: extrasPath,
+            withIntermediateDirectories: true
+         )
+         return extrasPath
+      } catch {
+         logError(error)
+         return basePath
+      }
     }
     
     /// Creates subdirectories for different extra types
@@ -221,6 +245,7 @@ struct FileOrganizer {
     /// Organizes a single episode
     private static func organizeEpisode(
       preview: Bool,
+      minEpisodeNumber: Int,
         episode: Episode,
         files: [FileItem],
         basePath: URL,
@@ -230,6 +255,7 @@ struct FileOrganizer {
         // Find matching file
         guard let file = findMatchingFile(
             files: files,
+            minEpisodeNumber: minEpisodeNumber,
             episode: episode,
             alternativeCut: episode.alternativeCut
         ) else {
@@ -243,25 +269,22 @@ struct FileOrganizer {
             alternativeCut: episode.alternativeCut
         )
         
-       if !preview {
-          // Move and rename file
-          let destination = basePath.appendingPathComponent(newFilename)
-          moveFile(
-            preview: preview,
-            from: file.url,
-            to: destination,
-            mergeStrategy: mergeStrategy,
-            results: &results
-          )
-       }
-        
-        results.filesMoved.append(file)
+       // Move and rename file
+       let destination = basePath.appendingPathComponent(newFilename+"."+file.url.pathExtension)
+       moveFile(
+         preview: preview,
+         from: file.url,
+         to: destination,
+         mergeStrategy: mergeStrategy,
+         results: &results
+       )
     }
     
     /// Organizes extras
     private static func organizeExtras(
       preview: Bool,
         extras: [Extra],
+      files: [FileItem],
         basePath: URL,
         mergeStrategy: MergeStrategy,
         results: inout OrganizationResults
@@ -269,7 +292,7 @@ struct FileOrganizer {
         for extra in extras {
             // Find matching file
             guard let file = findMatchingFile(
-                files: [], // Would need to scan directory
+                files: files,
                 extra: extra
             ) else {
                 results.warnings.append("No matching file found for extra: \(extra.title)")
@@ -279,19 +302,15 @@ struct FileOrganizer {
             // Generate new filename
             let newFilename = generateExtraFilename(extra: extra)
             
-           if !preview {
-              // Move and rename file
-              let destination = basePath.appendingPathComponent(newFilename)
-              moveFile(
-               preview: preview,
-               from: file.url,
-               to: destination,
-               mergeStrategy: mergeStrategy,
-               results: &results
-              )
-           }
-            
-            results.filesMoved.append(file)
+           // Move and rename file
+           let destination = basePath.appendingPathComponent(newFilename)
+           moveFile(
+            preview: preview,
+            from: file.url,
+            to: destination,
+            mergeStrategy: mergeStrategy,
+            results: &results
+           )
         }
     }
     
@@ -328,7 +347,9 @@ struct FileOrganizer {
                         let oldURL = url
                         let newURL = url.deletingLastPathComponent()
                             .appendingPathComponent("\(url.lastPathComponent) (Old)")
-                        try FileManager.default.moveItem(at: oldURL, to: newURL)
+                       if !preview {
+                          try FileManager.default.moveItem(at: oldURL, to: newURL)
+                       }
                        let url = try NFOGenerator.generateEpisodeNFO(
                         preview: preview,
                             episode: episode,
@@ -426,20 +447,43 @@ struct FileOrganizer {
     /// Finds a matching file for an episode
     private static func findMatchingFile(
         files: [FileItem],
+        minEpisodeNumber: Int,
         episode: Episode,
         alternativeCut: Bool? = nil
     ) -> FileItem? {
-        // Simple matching by title
-        let lowerTitle = episode.title.lowercased()
-        
-        for file in files {
+       // Filter down to mkv files of a certain size in name sorted order
+       let orderedMKV = files
+          .filter({
+             if ($0.contentType != .mkv) {
+                return false
+             }
+
+             if let episode_duration = episode.duration {
+                let diff = abs(episode_duration - ($0.durationInSeconds ?? 0))
+                return (diff > (60.0*3.0)) // Is the duration within n minutes
+             } else {
+                return ($0.durationInSeconds ?? 0) >= (60.0*18.0) // n minutes or more
+             }
+          })
+          .sorted(by: {
+             f1,f2 in f1.name < f2.name
+          })
+       
+       // Simple matching by title
+       let lowerTitle = episode.title.lowercased()
+       for file in orderedMKV {
             let lowerName = file.name.lowercased()
             
             if lowerName.contains(lowerTitle) || lowerTitle.contains(lowerName) {
                 return file
             }
         }
-        
+       
+       // No name match? What about order, find ordered item
+       if ((episode.episodeNumber-minEpisodeNumber) < orderedMKV.count) {
+          return orderedMKV[episode.episodeNumber-minEpisodeNumber]
+       }
+       
         return nil
     }
     
@@ -521,7 +565,8 @@ struct FileOrganizer {
            if !preview {
               try FileManager.default.moveItem(at: source, to: destination)
            }
-            results.filesMoved.append(FileItem(url: source))
+           let movedFile = OrganizationResults.MovedFile(src: FileItem(url: source),dst: FileItem(url: destination))
+           results.filesMoved.append(movedFile)
         } catch {
             results.errors.append("Failed to move \(source.lastPathComponent): \(error.localizedDescription)")
         }

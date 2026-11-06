@@ -14,7 +14,7 @@ struct FileItem: Identifiable {
    let isDirectory: Bool
    let path: String
    let size: Int64
-   let type: String
+   let type: String // Directory, File, Symbolic Link
    let creationDate: Date?
    let modifiedDate: Date?
    let contentType: FileSystem.FileContentType
@@ -65,7 +65,7 @@ struct FileItem: Identifiable {
 
    init(url: URL) {
       self.url = url
-      self.name = ""
+      self.name = url.lastPathComponent
       self.isDirectory = false
       self.path = ""
       self.size = 0

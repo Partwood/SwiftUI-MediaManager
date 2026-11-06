@@ -26,8 +26,14 @@ struct ResultsView: View {
             // Files Moved
             if !results.filesMoved.isEmpty {
                Section("Files Moved") {
-                  ForEach(results.filesMoved) { file in
-                     Text(file.name)
+                  ForEach(results.filesMoved) { moved in
+                     let srcDir = moved.src.url.deletingLastPathComponent()
+                     let dstDir = moved.dst.url.deletingLastPathComponent()
+                     if ( srcDir == dstDir ) {
+                        Text("\(moved.src.name) -> \(moved.dst.name)")
+                     } else {
+                        Text("\(moved.src.name) -> \(dstDir.lastPathComponent)/\(moved.dst.name)")
+                     }
                   }
                }
             }

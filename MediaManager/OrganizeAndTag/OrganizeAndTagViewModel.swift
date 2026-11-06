@@ -51,13 +51,11 @@ class OrganizeAndTagViewModel: ObservableObject {
    
    /// Execute the organization operation with progress tracking
    func executeOrganization(
+      fileSystem: FileSystem,
       preview: Bool,
-      mediaType: MediaType,
-      showTitle: String,
-      season: Int?,
       basePath: URL,
       mergeStrategy: MergeStrategy
-   ) /*async*/ throws -> OrganizationResults {
+   ) throws -> OrganizationResults {
       processingState = .processing
       progress = 0
       operationStatus = "Starting organization..."
@@ -74,19 +72,19 @@ class OrganizeAndTagViewModel: ObservableObject {
          }
          
          // Get files from the base path
-         let files = try getFiles(at: basePath)
+         let files = try getFiles(fileSystem: fileSystem,at: basePath)
          
          var results: OrganizationResults
          
          guard let organization_preview = organizationPreview else {
-            throw OrganizeAndTagError.noPreview
+            throw OrganizeAndTagError.missingPreview
          }
          
-         if mediaType == .tvShow {
+         if organization_preview.mediaType == .tvShow {
             results = FileOrganizer.organizeTVShow(
                preview: preview,
                files: files,
-               content: createContent(from: organization_preview, showTitle: showTitle),
+               content: createContent(from: organization_preview),
                basePath: basePath,
                mergeStrategy: mergeStrategy
             )
@@ -94,7 +92,7 @@ class OrganizeAndTagViewModel: ObservableObject {
             results = FileOrganizer.organizeMovie(
                preview: preview,
                files: files,
-               content: createContent(from: organization_preview, showTitle: showTitle),
+               content: createContent(from: organization_preview),
                basePath: basePath,
                mergeStrategy: mergeStrategy
             )
@@ -205,81 +203,8 @@ class OrganizeAndTagViewModel: ObservableObject {
       return true
    }
     
-    /// Initialize with parsed content
-//    func initialize(with content: String, mediaType: MediaType, startingEpisode: Int? = nil) {
-//        let viewModel = ImportPanelViewModel()
-//        viewModel.parse(content: content, mediaType: mediaType, startingEpisode: startingEpisode)
-//        
-//        DispatchQueue.main.async {
-//            self.organizationPreview = viewModel.organizationPreview
-//            self.parsingWarnings = viewModel.parsingWarnings
-//        }
-//    }
-    
-    /// Execute the organization operation
-//    func executeOrganization(
-//        mediaType: MediaType,
-//        showTitle: String,
-//        season: Int?,
-//        basePath: URL,
-//        mergeStrategy: MergeStrategy
-//    ) async throws -> OrganizationResults {
-//        processingState = .processing
-//        
-//        do {
-//            // Get files from the base path
-//            let files = try getFiles(at: basePath)
-//            
-//            var results: OrganizationResults
-//            
-//            if mediaType == .tvShow {
-//                guard let preview = organizationPreview else {
-//                    throw OrganizeAndTagError.noPreview
-//                }
-//                
-//                results = FileOrganizer.organizeTVShow(
-//                    files: files,
-//                    content: createContent(from: preview, showTitle: showTitle),
-//                    basePath: basePath,
-//                    mergeStrategy: mergeStrategy
-//                )
-//            } else {
-//                results = FileOrganizer.organizeMovie(
-//                    files: files,
-//                    content: createContent(from: organizationPreview ?? OrganizationPreview(), showTitle: showTitle),
-//                    basePath: basePath,
-//                    mergeStrategy: mergeStrategy
-//                )
-//            }
-//            
-//            organizationResults = results
-//            processingState = .completed
-//            
-//            // Show any warnings
-//            if !results.warnings.isEmpty {
-//                DispatchQueue.main.async {
-//                    self.errorMessages = results.warnings
-//                }
-//            }
-//            
-//            return results
-//            
-//        } catch {
-//           logError(error)
-//           
-//            processingState = .error
-//            errorMessages.append(error.localizedDescription)
-//            
-//            DispatchQueue.main.async {
-//                self.organizationResults = OrganizationResults()
-//            }
-//            
-//           throw error
-//        }
-//    }
-    
    /// Get all files from a directory recursively
-   private func getFiles(at url: URL) throws -> [FileItem] {
+   private func getFiles(fileSystem: FileSystem,at url: URL) throws -> [FileItem] {
       var files: [FileItem] = []
       
       if let enumerator = FileManager.default.enumerator(
@@ -288,42 +213,73 @@ class OrganizeAndTagViewModel: ObservableObject {
          options: [.skipsHiddenFiles]
       ) {
          enumerator.forEach({ item in
-            if let fileURL = item as? URL {
-               let fileItem = FileItem(url: fileURL)
-               files.append(fileItem)
+            guard let fileURL = item as? URL else {
+               return
             }
-            //guard let fileItem = FileItem(url: item!.asURL) else { return }
-            //files.append(fileItem)
+            
+            let durationInSeconds: Double? = getDurationInSeconds(fileURL)
+            
+            let fileType: String
+            let isDirectory: Bool
+            do {
+               let type = try fileSystem.info(fileURL).fileType
+               isDirectory = (type == .typeDirectory)
+               fileType = type.rawValue
+            } catch {
+               logError(error)
+               fileType = ""
+               isDirectory = false
+            }
+            
+            let fileItem = FileItem(
+               url: fileURL,
+               name: fileURL.lastPathComponent,
+               isDirectory: isDirectory,
+               path: fileURL.filePath,
+               size: 0,
+               type: fileType,
+               creationDate: nil,
+               modifiedDate: nil,
+               contentType: fileSystem.identifyFileType(at: fileURL),
+               durationInSeconds: durationInSeconds
+            )
+            
+            files.append(fileItem)
          })
       } else {
          logWarn("No enumerator")
       }
       
-//      /*try*/ FileManager.default.enumerator(
-//         at: url,
-//         includingPropertiesForKeys: [.isRegularFileKey],
-//         options: [.skipsHiddenFiles]
-//      )?.forEach({ item in
-//         if let fileURL = item as? URL {
-//            let fileItem = FileItem(url: fileURL)
-//            files.append(fileItem)
-//         }
-//         //guard let fileItem = FileItem(url: item!.asURL) else { return }
-//         //files.append(fileItem)
-//      })
-//        )?.enumerateDirectoryContents { item in
-//            guard let fileItem = FileItem(url: item!.asURL) else { return }
-//            files.append(fileItem)
-//        }
-      
       return files
+   }
+   
+   private func getDurationInSeconds(_ url: URL) -> Double? {
+      let durationInSeconds: Double?
+      
+      if DirectMKVParser.isMKV(url) {
+         do {
+            let mkvParser = try DirectMKVParser(fileURL: url)
+            if let metadata = mkvParser.parseContent() {
+               durationInSeconds = metadata.durationInSeconds
+            } else {
+               durationInSeconds = nil
+            }
+         } catch {
+            logError(error)
+            durationInSeconds = nil
+         }
+      } else {
+         durationInSeconds = nil
+      }
+      
+      return durationInSeconds
    }
 
    /// Create DVDCompareContent from preview
-   private func createContent(from preview: OrganizationPreview, showTitle: String) -> DVDCompareContent {
-      var content = DVDCompareContent(type: preview.mediaType, title: showTitle)
+   private func createContent(from preview: OrganizationPreview) -> DVDCompareContent {
+      var content = DVDCompareContent(type: preview.mediaType, title: preview.title)
       content.type = preview.mediaType
-      content.title = showTitle
+      content.title = preview.title
       content.season = preview.season
       
       content.episodes = preview.episodes
@@ -354,13 +310,13 @@ enum ProcessingState {
 
 /// Errors for the organize and tag feature
 enum OrganizeAndTagError: LocalizedError {
-    case noPreview
+    case missingPreview
     case invalidInput
     case fileOperationFailed
     
     var errorDescription: String? {
         switch self {
-        case .noPreview:
+        case .missingPreview:
             return "No preview data available"
         case .invalidInput:
             return "Invalid input provided"

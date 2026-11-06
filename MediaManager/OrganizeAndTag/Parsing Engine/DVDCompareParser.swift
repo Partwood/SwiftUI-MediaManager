@@ -268,8 +268,13 @@ struct DVDCompareParser {
         }
         
        let title = line.string(match.range(at: 2)) ?? ""
-       let durationString = line.string(match.range(at: 4)) ?? ""
-       let duration = DurationParser.parse(durationString) ?? 0
+       
+       let duration: TimeInterval?
+       if let durationString = line.string(match.range(at: 4)) {
+          duration = DurationParser.parse(durationString)
+       } else {
+          duration = nil
+       }       
 
         // Check for alternative cuts
         let alternativeCut = line.contains("Original cut") || line.contains("extended cut") || 

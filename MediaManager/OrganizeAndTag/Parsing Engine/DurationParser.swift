@@ -32,16 +32,20 @@ struct DurationParser {
     }
     
     /// Formats a TimeInterval to HH:MM or MM:SS format
-    static func format(_ duration: TimeInterval) -> String {
-        let totalSeconds = Int(duration)
-        let hours = totalSeconds / 3600
-        let minutes = (totalSeconds % 3600) / 60
-        let seconds = totalSeconds % 60
-        
-        if hours > 0 {
-            return String(format: "%02d:%02d", hours, minutes)
-        } else {
-            return String(format: "%02d:%02d", minutes, seconds)
-        }
+    static func format(_ duration: TimeInterval?) -> String {
+       guard let duration else {
+          return "00:00"
+       }
+       
+       let totalSeconds = Int(duration)
+       let hours = totalSeconds / 3600
+       let minutes = (totalSeconds % 3600) / 60
+       let seconds = totalSeconds % 60
+       
+       if hours > 0 {
+          return String(format: "%02d:%02d", hours, minutes)
+       } else {
+          return String(format: "%02d:%02d", minutes, seconds)
+       }
     }
 }
