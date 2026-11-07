@@ -27,6 +27,8 @@ struct OrganizeAndTagView: View {
    @State private var processingState: ProcessingState = .idle
    @State private var errorMessages: [String] = []
    @State private var activeTab: AppTab = .import_view
+
+   @State var startOrganization: Bool = false
    
    @Binding var showOrganizePanel: Bool
     
@@ -37,7 +39,6 @@ struct OrganizeAndTagView: View {
         TabView(selection: $activeTab) {
             // Import Panel Tab
             ImportPanelView(
-                content: content,
                 showTitle: showTitle,
                 selectedMediaType: selectedMediaType,
                 seasonNumber: seasonNumber,
@@ -49,6 +50,7 @@ struct OrganizeAndTagView: View {
                 organizationPreview: $viewModel.organizationPreview,
                 organizationResults: $viewModel.organizationResults,
                 appTab: $activeTab,
+                content: $content,
                 fileSystem: fileSystem
             )
             .tabItem {
@@ -61,6 +63,7 @@ struct OrganizeAndTagView: View {
               let results = viewModel.organizationResults {
               OrganizationPreviewView(
                appTab: $activeTab,
+               startOrganization: $startOrganization,
                preview: preview,
                basePath: basePath,
                mergeStrategy: mergeStrategy,
@@ -84,14 +87,14 @@ struct OrganizeAndTagView: View {
                 EmptyView()
             }
         }
+        .onChange(of: startOrganization, {
+           if startOrganization {
+              organize()
+           } else {
+              activeTab = .import_view
+           }
+        })
         .navigationTitle("Organize & Tag")
-//        .sheet(isPresented: $showConfirmationDialog) {
-//            ConfirmationDialog(
-//                results: viewModel.organizationResults ?? OrganizationResults(),
-//                mediaType: selectedMediaType,
-//                title: showTitle
-//            )
-//        }
         .alert("Processing Error", isPresented: .constant(!errorMessages.isEmpty)) {
             ForEach(errorMessages, id: \.self) { error in
                 Button(error) { }
@@ -102,10 +105,39 @@ struct OrganizeAndTagView: View {
         } message: {
             Text(errorMessages.joined(separator: "\n"))
         }
-        //.onAppear {
-           //viewModel.loadSampleContent()
-        //}
     }
+   
+   private func organize() {
+      let importViewModel = ImportPanelViewModel()
+      
+      importViewModel.parse(content: content, mediaType: selectedMediaType, startingEpisode: episodeNumber)
+      
+      let organizeAndTagViewModel = OrganizeAndTagViewModel()
+      organizeAndTagViewModel.organizationPreview = importViewModel.organizationPreview
+      
+      fileSystem.accessURL(basePath, { accessibleURL in
+         guard let url = accessibleURL else { return }
+         
+         do {
+            let organizationResults = try organizeAndTagViewModel.executeOrganization(
+               fileSystem: fileSystem,
+               preview: false,
+               basePath: url,
+               mergeStrategy: mergeStrategy)
+            
+            viewModel.organizationResults = organizationResults
+         } catch {
+            logError(error)
+            
+            var results = OrganizationResults()
+            results.errors.append(error.localizedDescription)
+            viewModel.organizationResults = results
+         }
+      })
+      
+      self.activeTab = .results
+      debug("Organized")
+   }
 }
 
 // MARK: - Preview

@@ -22,10 +22,11 @@ struct NFOGenerator {
         episode: Episode,
         showTitle: String,
         season: Int,
-        basePath: URL
-    ) throws -> URL {
-        let filename = "\(episode.episodeNumber) - \(episode.title).nfo"
-        let url = basePath.appendingPathComponent(filename)
+      url: URL
+        //basePath: URL
+    ) throws {
+        //let filename = "\(episode.episodeNumber) - \(episode.title).nfo"
+        //let url = basePath.appendingPathComponent(filename)
         
        if !preview {
           // Create parent directory if needed
@@ -43,7 +44,7 @@ struct NFOGenerator {
           try content.write(to: url, atomically: true, encoding: .utf8)
        }
        
-        return url
+        //return url
     }
     
     /// Generates a movie NFO file

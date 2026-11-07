@@ -117,55 +117,69 @@ struct FileOrganizer {
     ///   - basePath: Base directory path
     ///   - mergeStrategy: How to handle existing files
     /// - Returns: Results of the organization operation
-    static func organizeMovie(
+   static func organizeMovie(
       preview: Bool,
-        files: [FileItem],
-        content: DVDCompareContent,
-        basePath: URL,
-        mergeStrategy: MergeStrategy = .rename
-    ) -> OrganizationResults {
-        
-        var results = OrganizationResults()
-        
-        // Create extras directory
-       let extrasPath = createExtrasDirectory(preview: preview, at: basePath)
-        
-        // Find and move main movie (longest file)
-        if let mainMovie = findMainMovie(files: files, content: content) {
-            moveFile(
-               preview: preview,
-                from: mainMovie.url,
-                to: basePath.appendingPathComponent(mainMovie.name),
-                mergeStrategy: mergeStrategy,
-                results: &results
-            )
-            
-            // Generate movie NFO
-            generateMovieNFO(
-               preview: preview,
-                title: content.title,
-                plot: content.plot,
-                year: content.year,
-                director: content.director,
-                runtime: content.mainMovieDuration,
-                basePath: basePath,
-                mergeStrategy: mergeStrategy,
-                results: &results
-            )
-        }
-        
-        // Organize extras
-        organizeExtras(
-         preview: preview,
-            extras: content.extras,
-         files: files,
-            basePath: extrasPath,
+      files: [FileItem],
+      content: DVDCompareContent,
+      basePath: URL,
+      mergeStrategy: MergeStrategy = .rename
+   ) -> OrganizationResults {
+      
+      var results = OrganizationResults()
+      
+      // Create extras directory
+      let extrasPath = createExtrasDirectory(preview: preview, at: basePath)
+      
+      // Find and move main movie (longest file)
+      if let mainMovie = findMainMovie(files: files, content: content) {
+         moveFile(
+            preview: preview,
+            from: mainMovie.url,
+            to: basePath.appendingPathComponent(mainMovie.name),
             mergeStrategy: mergeStrategy,
             results: &results
-        )
-        
-        return results
-    }
+         )
+         
+         // Generate movie NFO
+         generateMovieNFO(
+            preview: preview,
+            title: content.title,
+            plot: content.plot,
+            year: content.year,
+            director: content.director,
+            runtime: content.mainMovieDuration,
+            basePath: basePath,
+            mergeStrategy: mergeStrategy,
+            results: &results
+         )
+      }
+      
+      // Organize extras
+      organizeExtras(
+         preview: preview,
+         extras: content.extras,
+         files: files,
+         basePath: extrasPath,
+         mergeStrategy: mergeStrategy,
+         results: &results
+      )
+      
+      files.filter({ fileItem in
+         !fileItem.isDirectory &&
+         !results.filesMoved.contains(where: { movedFile in
+            movedFile.src.url == fileItem.url
+         })
+      }).forEach({ remainingFile in
+         let newFilename = extrasPath.appendingPathComponent(remainingFile.url.lastPathComponent)
+         moveFile(preview: preview,
+                  from: remainingFile.url,
+                  to: newFilename,
+                  mergeStrategy: mergeStrategy,
+                  results: &results)
+      })
+      
+      return results
+   }
     
     /// Creates a season directory
     private static func createSeasonDirectory(
@@ -324,58 +338,58 @@ struct FileOrganizer {
         mergeStrategy: MergeStrategy,
         results: inout OrganizationResults
     ) {
-        for episode in episodes {
-            let filename = "\(episode.episodeNumber) - \(episode.title).nfo"
-            let url = basePath.appendingPathComponent(filename)
-            
-            do {
-                // Check if NFO already exists
-                if FileManager.default.fileExists(atPath: url.path) {
-                    switch mergeStrategy {
-                    case .replace:
-                        let url = try NFOGenerator.generateEpisodeNFO(
-                           preview: preview,
-                            episode: episode,
-                            showTitle: showTitle,
-                            season: season,
-                            basePath: basePath
-                        )
-                        results.nfoFilesCreated.append(url)
-                    case .skip:
-                        continue
-                    case .rename:
-                        let oldURL = url
-                        let newURL = url.deletingLastPathComponent()
-                            .appendingPathComponent("\(url.lastPathComponent) (Old)")
-                       if !preview {
-                          try FileManager.default.moveItem(at: oldURL, to: newURL)
-                       }
-                       let url = try NFOGenerator.generateEpisodeNFO(
-                        preview: preview,
-                            episode: episode,
-                            showTitle: showTitle,
-                            season: season,
-                            basePath: basePath
-                        )
-                        results.nfoFilesCreated.append(url)
-                    case .mergeMetadata:
-                        // Would merge with existing NFO
-                        results.warnings.append("Merging metadata with existing NFO: \(filename)")
-                    }
-                } else {
-                   let url = try NFOGenerator.generateEpisodeNFO(
+       for episode in episodes {
+          let filename = "\(String(format: "%02d", episode.episodeNumber)) - \(episode.title).nfo"
+          let url = basePath.appendingPathComponent(filename)
+          
+          do {
+             // Check if NFO already exists
+             if FileManager.default.fileExists(atPath: url.path) {
+                switch mergeStrategy {
+                case .replace:
+                   try NFOGenerator.generateEpisodeNFO(
                      preview: preview,
-                        episode: episode,
-                        showTitle: showTitle,
-                        season: season,
-                        basePath: basePath
-                    )
-                    results.nfoFilesCreated.append(url)
+                     episode: episode,
+                     showTitle: showTitle,
+                     season: season,
+                     url: url
+                   )
+                   results.nfoFilesCreated.append(url)
+                case .skip:
+                   continue
+                case .rename:
+                   let oldURL = url
+                   let newURL = url.deletingLastPathComponent()
+                      .appendingPathComponent("\(url.lastPathComponent) (Old)")
+                   if !preview {
+                      try FileManager.default.moveItem(at: oldURL, to: newURL)
+                   }
+                   try NFOGenerator.generateEpisodeNFO(
+                     preview: preview,
+                     episode: episode,
+                     showTitle: showTitle,
+                     season: season,
+                     url: url
+                   )
+                   results.nfoFilesCreated.append(url)
+                case .mergeMetadata:
+                   // Would merge with existing NFO
+                   results.warnings.append("Merging metadata with existing NFO: \(filename)")
                 }
-            } catch {
-                results.errors.append("Failed to create NFO: \(filename) - \(error.localizedDescription)")
-            }
-        }
+             } else {
+                try NFOGenerator.generateEpisodeNFO(
+                  preview: preview,
+                  episode: episode,
+                  showTitle: showTitle,
+                  season: season,
+                  url: url
+                )
+                results.nfoFilesCreated.append(url)
+             }
+          } catch {
+             results.errors.append("Failed to create NFO: \(filename) - \(error.localizedDescription)")
+          }
+       }
     }
     
     /// Generates movie NFO

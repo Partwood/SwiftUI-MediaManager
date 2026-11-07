@@ -15,6 +15,8 @@ struct ConfirmationDialog: View {
     
     @Environment(\.presentationMode) var presentationMode
     
+   @Binding var startOrganization: Bool
+   
     var body: some View {
         VStack(spacing: 20) {
             // Summary
@@ -70,11 +72,13 @@ struct ConfirmationDialog: View {
             // Buttons
             HStack(spacing: 16) {
                 Button("Cancel") {
+                   startOrganization = false
                     presentationMode.wrappedValue.dismiss()
                 }
                 .buttonStyle(.bordered)
                 
                 Button("Confirm") {
+                   startOrganization = true
                     presentationMode.wrappedValue.dismiss()
                 }
                 .buttonStyle(.borderedProminent)
@@ -86,9 +90,12 @@ struct ConfirmationDialog: View {
 }
 
 #Preview {
+   @Previewable @State var startOrganization: Bool = false
+   
     ConfirmationDialog(
         results: OrganizationResults(),
         mediaType: .tvShow,
-        title: "Test Show"
+        title: "Test Show",
+        startOrganization: $startOrganization
     )
 }

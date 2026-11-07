@@ -17,7 +17,8 @@ struct OrganizationPreviewView: View {
    @State private var isShowingFolderPicker: Bool = false
    
    @Binding var appTab: OrganizeAndTagView.AppTab
-   
+   @Binding var startOrganization: Bool
+
    let preview: OrganizationPreview
    let basePath: URL
    let mergeStrategy: MergeStrategy
@@ -155,13 +156,15 @@ struct OrganizationPreviewView: View {
          ConfirmationDialog(
             results: results,
             mediaType: selectedMediaType,
-            title: showTitle
+            title: showTitle,
+            startOrganization: $startOrganization
          )
       }
    }
 }
 
 #Preview {
+   @Previewable @State var startOrganization: Bool = false
    @Previewable @State var appTab: OrganizeAndTagView.AppTab = .import_view
    
    let preview = OrganizationPreview(
@@ -182,6 +185,7 @@ struct OrganizationPreviewView: View {
    let results = OrganizationResults(filesMoved: [], nfoFilesCreated: [], warnings: [], errors: [])
    
    OrganizationPreviewView(appTab: $appTab,
+                           startOrganization: $startOrganization,
                            preview: preview,
                            basePath: URL(fileURLWithPath: "/Users"),
                            mergeStrategy: .rename,

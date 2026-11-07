@@ -11,7 +11,7 @@ import SwiftUI
 struct ImportPanelView: View {
    @StateObject private var viewModel = ImportPanelViewModel()
 
-   @State var content: String = ""
+   //@State var content: String = ""
    @State var showTitle: String = ""
    @State var selectedMediaType: MediaType = .tvShow
    @State var seasonNumber: Int = 1
@@ -24,6 +24,7 @@ struct ImportPanelView: View {
    @Binding var organizationPreview: OrganizationPreview?
    @Binding var organizationResults: OrganizationResults?
    @Binding var appTab: OrganizeAndTagView.AppTab
+   @Binding var content: String
    
    let fileSystem: FileSystem
    
@@ -117,6 +118,10 @@ struct ImportPanelView: View {
                            mergeStrategy: mergeStrategy)
                       } catch {
                          logError(error)
+                         
+                         var results = OrganizationResults()
+                         results.errors.append(error.localizedDescription)
+                         self.organizationResults = results
                       }
                    })
                    
@@ -145,6 +150,7 @@ struct ImportPanelView: View {
    @Previewable @State var organizationPreview: OrganizationPreview? = nil
    @Previewable @State var organizationResults: OrganizationResults? = nil
    @Previewable @State var appTab: OrganizeAndTagView.AppTab = .import_view
+   @Previewable @State var content: String = ""
    
    let fileSystem = FileSystem(URL(fileURLWithPath: "/Users"))
    
@@ -153,6 +159,7 @@ struct ImportPanelView: View {
       organizationPreview: $organizationPreview,
       organizationResults: $organizationResults,
       appTab: $appTab,
+      content: $content,
       fileSystem: fileSystem
    )
 }
