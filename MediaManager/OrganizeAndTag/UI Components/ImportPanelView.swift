@@ -11,7 +11,6 @@ import SwiftUI
 struct ImportPanelView: View {
    @StateObject private var viewModel = ImportPanelViewModel()
 
-   //@State var content: String = ""
    @State var showTitle: String = ""
    @State var selectedMediaType: MediaType = .tvShow
    @State var seasonNumber: Int = 1
@@ -20,13 +19,13 @@ struct ImportPanelView: View {
    @State var mergeStrategy: MergeStrategy = .rename
    @State var isShowingFolderPicker: Bool = false
    
+   @State var fileSystem: FileSystem
+   
    @Binding var showOrganizePanel: Bool
    @Binding var organizationPreview: OrganizationPreview?
    @Binding var organizationResults: OrganizationResults?
    @Binding var appTab: OrganizeAndTagView.AppTab
    @Binding var content: String
-   
-   let fileSystem: FileSystem
    
     var body: some View {
         Form {
@@ -56,29 +55,8 @@ struct ImportPanelView: View {
             // Base Directory
             Section(header: Text("Base Directory")) {
                 VStack {
-                    Text(basePath.lastPathComponent)
+                    Text(basePath.filePath)
                     .font(.headline)
-                    
-                   Button("Browse...") {
-                      let panel = NSOpenPanel()
-                      panel.allowsMultipleSelection = false
-                      panel.canChooseDirectories = true
-                      panel.canChooseFiles = false
-                      panel.message = "Select base directory for organization"
-                      
-                      if panel.runModal() == .OK, let url = panel.url {
-                         basePath = url
-                         isShowingFolderPicker = false
-                         if showTitle.isEmpty {
-                            showTitle = basePath.lastPathComponent
-                         }
-                      }
-                   }
-                    //.sheet(isPresented: $isShowingFolderPicker) {
-                    //}
-                       // Implement file picker
-                    //}
-                    .buttonStyle(.bordered)
                 }
             }
             
@@ -155,11 +133,11 @@ struct ImportPanelView: View {
    let fileSystem = FileSystem(URL(fileURLWithPath: "/Users"))
    
    ImportPanelView(
+      fileSystem: fileSystem,
       showOrganizePanel: $showOrganizePanel,
       organizationPreview: $organizationPreview,
       organizationResults: $organizationResults,
       appTab: $appTab,
       content: $content,
-      fileSystem: fileSystem
    )
 }

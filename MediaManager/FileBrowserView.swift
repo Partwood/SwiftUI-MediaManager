@@ -97,9 +97,9 @@ struct FileBrowserView: View {
                .buttonStyle(.bordered)
                
                if showOrganizePanel {
-                  OrganizeAndTagView(showOrganizePanel: $showOrganizePanel,
-                                     basePath: organizationPath,
-                                     fileSystem: fileSystem)
+                  OrganizeAndTagView(fileSystem: fileSystem,
+                                     showOrganizePanel: $showOrganizePanel,
+                                     basePath: organizationPath)
                   .frame(minWidth: 600, minHeight: 400)
                }
             }

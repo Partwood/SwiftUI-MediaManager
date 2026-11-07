@@ -271,7 +271,7 @@ struct FileOrganizer {
             files: files,
             minEpisodeNumber: minEpisodeNumber,
             episode: episode,
-            alternativeCut: episode.alternativeCut
+            //alternativeCut: episode.alternativeCut
         ) else {
             results.warnings.append("No matching file found for: \(episode.title)")
             return
@@ -280,7 +280,7 @@ struct FileOrganizer {
         // Generate new filename
         let newFilename = generateEpisodeFilename(
             episode: episode,
-            alternativeCut: episode.alternativeCut
+            //alternativeCut: episode.alternativeCut
         )
         
        // Move and rename file
@@ -463,7 +463,7 @@ struct FileOrganizer {
         files: [FileItem],
         minEpisodeNumber: Int,
         episode: Episode,
-        alternativeCut: Bool? = nil
+        //alternativeCut: Bool? = nil
     ) -> FileItem? {
        // Filter down to mkv files of a certain size in name sorted order
        let orderedMKV = files
@@ -522,12 +522,13 @@ struct FileOrganizer {
     /// Generates filename for an episode
     private static func generateEpisodeFilename(
         episode: Episode,
-        alternativeCut: Bool? = nil
+        //alternativeCut: Bool? = nil
     ) -> String {
         var filename = "\(String(format: "%02d", episode.episodeNumber)) - \(episode.title)"
         
-        if let alternativeCut = alternativeCut, alternativeCut {
-            filename += " - Alternative Cut"
+       if episode.isAlternativeCut,
+          let alternativeCut = episode.alternativeCut {
+            filename += " - " + alternativeCut
         }
         
         return filename

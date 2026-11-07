@@ -277,18 +277,32 @@ struct DVDCompareParser {
        }       
 
         // Check for alternative cuts
-        let alternativeCut = line.contains("Original cut") || line.contains("extended cut") || 
-                            line.contains("Producer's")
-        
+       let isAlternativeCut: Bool
+       let alternativeCut:String?
+       if line.lowercased().contains("original cut") {
+          isAlternativeCut = true
+          alternativeCut = "Original cut"
+       } else if line.lowercased().contains("extended cut") {
+          isAlternativeCut = true
+          alternativeCut = "Extended cut"
+       } else if line.lowercased().contains("producer's") {
+          isAlternativeCut = true
+          alternativeCut = "Producer cut"
+       } else {
+          isAlternativeCut = false
+          alternativeCut = nil
+       }
+       
         return Episode(
             title: title.trimmingCharacters(in: .whitespacesAndNewlines),
             duration: duration,
             episodeNumber: 0, // Will be assigned later
-            alternativeCut: alternativeCut,
             isDeletedScene: nil,
             plot: nil,
             cast: nil,
-            rating: nil
+            rating: nil,
+            isAlternativeCut: isAlternativeCut,
+            alternativeCut: alternativeCut
         )
     }
     

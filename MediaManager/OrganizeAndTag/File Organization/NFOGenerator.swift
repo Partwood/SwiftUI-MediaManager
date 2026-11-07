@@ -156,16 +156,15 @@ struct NFOGenerator {
        }
        
        let episodeTitle: String
-       if let alternativeCut = episode.alternativeCut {
-          let cutPart = alternativeCut ? "Alternative Cut" : ""
-          episodeTitle = "\(escapeXML(episode.title)) - \(cutPart)"
+       if episode.isAlternativeCut,
+          let alternativeCut: String = episode.alternativeCut {
+          episodeTitle = "\(escapeXML(episode.title)) - \(alternativeCut)"
        } else {
           episodeTitle = escapeXML(episode.title)
        }
 
        let plot: String
        if let episodePlot = episode.plot {
-          //content += "            <plot>\(escapeXML(plot))</plot>\n"
           plot = "    \(escapeXML(episodePlot))"
        } else {
           plot = ""
@@ -173,7 +172,6 @@ struct NFOGenerator {
 
        let rating: String
        if let episodeRating = episode.rating {
-          //content += "            <rating>\(escapeXML(rating))</rating>\n"
           rating = "    \(escapeXML(episodeRating))"
        } else {
           rating = ""
