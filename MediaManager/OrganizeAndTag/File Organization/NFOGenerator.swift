@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// Generates NFO files for movies and TV episodes following Jellyfin standards
+/// Generates NFO files fores and TV episodes following Jellyfin standards
 struct NFOGenerator {
     
     /// Generates an episode NFO file
@@ -145,12 +145,12 @@ struct NFOGenerator {
     ) -> String {
        
        let runtime: String
-       if let duration = episode.duration {
+       if let duration: TimeInterval = episode.duration {
           let divDuration3600 = duration.truncatingRemainder(dividingBy: 3600.0)
           let divDuration60 = duration.truncatingRemainder(dividingBy: 60.0)
-          runtime = duration > 3600 ?
-          String(format: "%d:%02d", duration / 3600.0, divDuration3600 / 60.0) :
-          String(format: "%02d:%02d", (duration / 60.0).truncatingRemainder(dividingBy: 60.0), divDuration60)
+          runtime = duration > 3600.0 ?
+          String(format: "%d:%02d", Int(duration / 3600.0), Int(divDuration3600 / 60.0)) :
+          String(format: "%02d:%02d", Int((duration / 60.0).truncatingRemainder(dividingBy: 60.0)), Int(divDuration60))
        } else {
           runtime = "0:00"
        }

@@ -9,7 +9,8 @@ import Foundation
 
 /// Represents a single episode of a TV show
 struct Episode: Codable, Identifiable {
-   var id: String { title }
+   var id: UUID { UUID() }
+   //var id: String { title }
    
    var title: String
    var duration: TimeInterval?

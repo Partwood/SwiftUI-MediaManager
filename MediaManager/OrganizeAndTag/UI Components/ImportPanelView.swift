@@ -82,28 +82,41 @@ struct ImportPanelView: View {
                    viewModel.parse(content: content, mediaType: selectedMediaType, startingEpisode: episodeNumber)
                    self.organizationPreview = viewModel.organizationPreview
                    
-                   let organizeAndTagViewModel = OrganizeAndTagViewModel()
-                   organizeAndTagViewModel.organizationPreview = viewModel.organizationPreview
-                   
-                   fileSystem.accessURL(basePath, { accessibleURL in
-                      guard let url = accessibleURL else { return }
+                   if (self.organizationPreview == nil) {
+                      // No preview
+                      var results = OrganizationResults()
+
+                      viewModel.parsingWarnings.forEach({ warning in
+                         results.errors.append(warning)
+                      })
+
+                      self.organizationResults = results
                       
-                      do {
-                         self.organizationResults = try organizeAndTagViewModel.executeOrganization(
-                           fileSystem: fileSystem,
-                           preview: true,
-                           basePath: url,
-                           mergeStrategy: mergeStrategy)
-                      } catch {
-                         logError(error)
+                      self.appTab = .results
+                   } else {
+                      let organizeAndTagViewModel = OrganizeAndTagViewModel()
+                      organizeAndTagViewModel.organizationPreview = viewModel.organizationPreview
+                      
+                      fileSystem.accessURL(basePath, { accessibleURL in
+                         guard let url = accessibleURL else { return }
                          
-                         var results = OrganizationResults()
-                         results.errors.append(error.localizedDescription)
-                         self.organizationResults = results
-                      }
-                   })
+                         do {
+                            self.organizationResults = try organizeAndTagViewModel.executeOrganization(
+                              fileSystem: fileSystem,
+                              preview: true,
+                              basePath: url,
+                              mergeStrategy: mergeStrategy)
+                         } catch {
+                            logError(error)
+                            
+                            var results = OrganizationResults()
+                            results.errors.append(error.localizedDescription)
+                            self.organizationResults = results
+                         }
+                      })
+                      self.appTab = .preview_view
+                   }
                    
-                   self.appTab = .preview_view
                    debug("Parsed")
                 }
                 .buttonStyle(.borderedProminent)

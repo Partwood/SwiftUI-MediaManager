@@ -3,7 +3,10 @@
    version = "1.0">
    <ContextStates>
       <ContextState
-         contextName = "closure #2 in View.contextClickModifier(file:action:):FileBrowserView.swift">
+         contextName = "closure #1 in closure #6 in closure #1 in ImportPanelView.body.getter:ImportPanelView.swift">
+      </ContextState>
+      <ContextState
+         contextName = "OrganizeAndTagViewModel.getFiles(at:):OrganizeAndTagViewModel.swift">
       </ContextState>
       <ContextState
          contextName = "DirectMKVParser.extractTitle(from:):Markov.swift">
@@ -12,6 +15,58 @@
                value = "data.count">
             </PersistentString>
          </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "static DVDCompareParser.parse(_:):DVDCompareParser.swift">
+      </ContextState>
+      <ContextState
+         contextName = "ImportPanelViewModel.generatePreview(content:mediaType:):ImportPanelViewModel.swift">
+      </ContextState>
+      <ContextState
+         contextName = "static DVDCompareParser.parseEpisodeLine(_:):DVDCompareParser.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "line.string(match.range(at: 2))">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "OrganizeAndTagViewModel.getFiles(fileSystem:at:):OrganizeAndTagViewModel.swift">
+      </ContextState>
+      <ContextState
+         contextName = "ImportPanelViewModel.parse(content:mediaType:startingEpisode:):ImportPanelViewModel.swift">
+      </ContextState>
+      <ContextState
+         contextName = "closure #2 in View.contextClickModifier(file:action:):FileBrowserView.swift">
+      </ContextState>
+      <ContextState
+         contextName = "OrganizerMatchingTests.redDwarfS5D1():OrganizerMatchingTests.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "content">
+            </PersistentString>
+            <PersistentString
+               value = "results">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "static FileOrganizer.findMatchingFile(files:minEpisodeNumber:episode:):FileOrganizer.swift">
+      </ContextState>
+      <ContextState
+         contextName = "static DVDCompareParser.parseSection(from:startingAt:endingAt:delimiter:section:into:):DVDCompareParser.swift">
+      </ContextState>
+      <ContextState
+         contextName = "static FileOrganizer.findMatchingFile(files:minEpisodeNumber:episode:alternativeCut:):FileOrganizer.swift">
+      </ContextState>
+      <ContextState
+         contextName = "closure #1 in ImportPanelView.body.getter:ImportPanelView.swift">
+      </ContextState>
+      <ContextState
+         contextName = "FileBrowserView.handleFileSelectionChanged():FileBrowserView.swift">
+      </ContextState>
+      <ContextState
+         contextName = "static DVDCompareParser.parseTVShow(from:into:):DVDCompareParser.swift">
       </ContextState>
       <ContextState
          contextName = "FileSystem.identifyFileType(at:):FileSystem.swift">
@@ -25,7 +80,15 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "FileBrowserView.handleFileSelectionChanged():FileBrowserView.swift">
+         contextName = "DVDCompareParserTests.testEpisodeParsing():DVDCompareParserTests.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "e1">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "ImportPanelViewModel.parse(content:title:mediaType:):ImportPanelViewModel.swift">
       </ContextState>
    </ContextStates>
 </VariablesViewState>

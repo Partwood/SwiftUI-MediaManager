@@ -9,7 +9,8 @@ import Foundation
 
 /// Represents an extra file (commentary, deleted scene, etc.)
 struct Extra: Codable, Identifiable {
-    var id: String { title }
+   var id: UUID { UUID() }
+   //var id: String { title }
     
     var title: String
     var duration: TimeInterval

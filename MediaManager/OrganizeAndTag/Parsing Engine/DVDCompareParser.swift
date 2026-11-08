@@ -161,7 +161,7 @@ struct DVDCompareParser {
     private static func parseTVShow(from input: String,into content: inout DVDCompareContent) {
         // Find section headers
         let sections = [
-            ("Episodes", "\\b(Episodes|episodes):?\n"),
+            ("Episodes", "\\b([Ee]pisodes)(?:\\s*)?(?:\\([^)]*\\))?:?\n"),
             ("Commentaries", "\\bCommentaries?:?\n"),
             ("Deleted Scenes", "\\bDeleted\\s*Scenes?:?\n"),
             ("Music Videos", "\\bMusic\\s*Videos?:?\n"),
@@ -212,7 +212,6 @@ struct DVDCompareParser {
                                     delimiter: Character?,
                                     section: Section,
                                     into content: inout DVDCompareContent,
-                                    //sectionName: String
    ) {
        let remaining = (endOffset == nil) ? String(input[offset...]) : String(input[offset..<endOffset!])
         let lines = remaining.components(separatedBy: .newlines)
@@ -258,11 +257,12 @@ struct DVDCompareParser {
     }
     
     /// Parses an episode line
-    private static func parseEpisodeLine(_ line: String) -> Episode? {
+    static func parseEpisodeLine(_ line: String) -> Episode? {
         // Pattern: '- "Episode Title" (MM:SS)' OR '"Episode Title" (MM:SS)'; Time could be optional
-        let pattern = "^(-\\s*)?\"?([^\"\\n]+)\"?(\\s*\\[(.*?)\\])?\\s*(\\((\\d{1,2}:\\d{2})\\))?"
-        
-        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
+       //let pattern = "^(-\\s*)?\"?([^\"\\n]+)\"?(?:\\s*[^\\(\\n]*)?(\\((\\d{1,2}:\\d{2})\\))?"
+       let titlePattern = "^(-\\s*)?\"?([^\"\\n]+)\"?(?:\\s*[^\\(\\n]*)?(\\((\\d{1,2}:\\d{2})\\))?"
+       //              (prefix)   (name     )   (!'(' and !'\n'  ) (duration               )
+        guard let regex = try? NSRegularExpression(pattern: titlePattern, options: .caseInsensitive),
               let match = regex.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)) else {
             return nil
         }
@@ -270,7 +270,8 @@ struct DVDCompareParser {
        let title = line.string(match.range(at: 2)) ?? ""
        
        let duration: TimeInterval?
-       if let durationString = line.string(match.range(at: 4)) {
+       if let split = DurationParser.splitByLastOpenParen(line) {
+          let durationString = split.time
           duration = DurationParser.parse(durationString)
        } else {
           duration = nil
@@ -279,15 +280,18 @@ struct DVDCompareParser {
         // Check for alternative cuts
        let isAlternativeCut: Bool
        let alternativeCut:String?
-       if line.lowercased().contains("original cut") {
+       if line.lowercased().contains("original") {
           isAlternativeCut = true
           alternativeCut = "Original cut"
-       } else if line.lowercased().contains("extended cut") {
+       } else if line.lowercased().contains("extended") {
           isAlternativeCut = true
           alternativeCut = "Extended cut"
-       } else if line.lowercased().contains("producer's") {
+       } else if line.lowercased().contains("producer") {
           isAlternativeCut = true
           alternativeCut = "Producer cut"
+       } else if line.lowercased().contains("remaster") {
+          isAlternativeCut = true
+          alternativeCut = "Remastered cut"
        } else {
           isAlternativeCut = false
           alternativeCut = nil

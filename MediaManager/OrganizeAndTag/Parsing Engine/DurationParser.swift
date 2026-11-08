@@ -18,7 +18,7 @@ struct DurationParser {
        guard !trimmed.isEmpty else { return nil }
 
        // Pattern for MM:SS or M:SS
-       let pattern = "^\\s*(\\d+):(\\d{2})\\s*$"
+       let pattern = "^\\s*(?:\\()?(\\d+):(\\d{2})(?:\\))?\\s*$"
        guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
              let match = regex.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) else {
           return nil
@@ -48,4 +48,23 @@ struct DurationParser {
           return String(format: "%02d:%02d", minutes, seconds)
        }
     }
+   
+   /// Splits a string by the last open paren, returning the parenthesized time portion
+   /// - Parameter input: Input string that may contain time in parentheses at the end
+   /// - Returns: Tuple of (prefix without time, time in parentheses) or (original, nil) if not found
+   static func splitByLastOpenParen(_ input: String) -> (prefix: String, time: String)? {
+      guard let lastOpenParenIndex = input.lastIndex(of: "(") else {
+         return nil
+      }
+      
+      let timePortion = String(input[input.index(before: lastOpenParenIndex)...])
+      let prefix = String(input.prefix(upTo: lastOpenParenIndex))
+      
+      // Verify the time portion matches the expected format (MM:SS or HH:MM)
+      guard timePortion.contains(":") else {
+         return nil
+      }
+      
+      return (prefix, timePortion)
+   }
 }

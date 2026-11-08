@@ -9,7 +9,7 @@ import Foundation
 
 /// Preview data for organization operations
 struct OrganizationPreview: Identifiable {
-   var id: UUID = UUID()
+   var id: UUID // = { UUID() }
 
    let mediaType: MediaType
    let title: String
@@ -25,6 +25,7 @@ struct OrganizationPreview: Identifiable {
    let year: Int?
    
    init(mediaType: MediaType, title: String, mainMovieDuration: TimeInterval?, season: Int?, episodes: [Episode], commentaries: [Extra], deletedScenes: [Extra], musicVideos: [Extra], trailers: [Extra], extras: [Extra], director: String?, year: Int?) {
+      self.id = UUID()
       self.mediaType = mediaType
       self.title = title
       self.mainMovieDuration = mainMovieDuration
@@ -40,6 +41,7 @@ struct OrganizationPreview: Identifiable {
    }
    
    init() {
+      self.id = UUID()
       self.mediaType = .tvShow
       self.title = "title"
       self.season = nil

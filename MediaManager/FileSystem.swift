@@ -120,6 +120,25 @@ extension FileSystem {
             default: return "Unknown Type"
          }
       }
+      
+      static func get(from: String) -> FileContentType {
+         switch from {
+         case "MKV Video": return .mkv
+         case "MP4 Video": return .mp4
+         case "AVI Video": return .avi
+         case "JPEG Image": return .jpeg
+         case "PNG Image": return .png
+         case "MP3 Audio": return .mp3
+         case "WAV Audio": return .wav
+         case "HTML Document": return .html
+         case "Markdown Document": return .markdown
+         case "XML File": return .xml
+         case "NFO File": return .nfo
+         case "Text File": return .text
+         case "Binary File": return .binary
+         default: return .unknown
+         }
+      }
    }
    
    func accessURL(_ url: URL,_ operation: @escaping (_ url: URL?)->Void) {

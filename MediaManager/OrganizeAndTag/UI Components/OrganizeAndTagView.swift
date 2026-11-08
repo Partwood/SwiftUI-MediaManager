@@ -33,6 +33,7 @@ struct OrganizeAndTagView: View {
    @State var fileSystem: FileSystem
 
    @Binding var showOrganizePanel: Bool
+   @Binding var organized: Bool
     
    let basePath: URL
    
@@ -91,6 +92,7 @@ struct OrganizeAndTagView: View {
         .onChange(of: startOrganization, {
            if startOrganization {
               organize()
+              organized = true
            } else {
               activeTab = .import_view
            }
@@ -144,10 +146,12 @@ struct OrganizeAndTagView: View {
 // MARK: - Preview
 #Preview {
    @Previewable @State var showOrganizePanel: Bool = false
+   @Previewable @State var organized: Bool = false
    
    let fileSystem = FileSystem(URL(fileURLWithPath: "/Users"))
    
    OrganizeAndTagView(fileSystem: fileSystem,
                       showOrganizePanel: $showOrganizePanel,
+                      organized: $organized,
                       basePath: URL(fileURLWithPath: "/Users"))
 }

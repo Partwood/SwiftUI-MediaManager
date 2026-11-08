@@ -57,20 +57,16 @@ struct FileOrganizer {
           createExtraSubdirectories(at: extrasPath)
        }
        
-       let startingEpisode = content.episodes.min(by: { e1,e2 in e1.episodeNumber < e2.episodeNumber })
+       let startingEpisode: Int = content.episodes.min(by: { e1,e2 in e1.episodeNumber < e2.episodeNumber })?.episodeNumber ?? 1
        
         // Organize episodes
-        for episode in content.episodes {
-            organizeEpisode(
-               preview: preview,
-               minEpisodeNumber: (startingEpisode?.episodeNumber ?? 1),
-                episode: episode,
-                files: files,
-                basePath: seasonPath,
-                mergeStrategy: mergeStrategy,
-                results: &results
-            )
-        }
+       organizeEpisodes(preview: preview,
+                        files: files,
+                        episodes: content.episodes,
+                        startingEpisode: startingEpisode,
+                        seasonPath: seasonPath,
+                        mergeStrategy: mergeStrategy,
+                        results: &results)
         
         // Organize extras
         organizeExtras(
@@ -109,6 +105,84 @@ struct FileOrganizer {
         
         return results
     }
+   
+   /**
+    Rework matching SecKeyAlgorithm
+    Reduce set of files to the set of episodes
+    Throw out outliers
+    Does count of files == count of episodes, match them
+    If greater take first N
+    If less take first n, report gaps
+    */
+   private static func organizeEpisodes(preview: Bool,
+                                        files: [FileItem],
+                                        episodes: [Episode],
+                                        startingEpisode: Int,
+                                        seasonPath: URL,
+                                        mergeStrategy: MergeStrategy,
+                                        results: inout OrganizationResults) {
+      // Filter down to mkv files of a certain size in name sorted order
+      let orderedMKV = files
+         .filter({ fileItem in
+            // By type (mkv) duration must be some min and duration must be found in the set of episodes
+            if (fileItem.contentType != .mkv) {
+               return false
+            }
+            
+            var durationsExist: Bool = false
+            let exists = episodes.contains(where: { episode in
+               if let episode_duration = episode.duration {
+                  durationsExist = true
+                  let diff = abs(episode_duration - (fileItem.durationInSeconds ?? 0))
+                  return (diff < (60.0*3.0)) // Is the duration within n minutes
+               } else {
+                  return false
+               }
+            })
+            
+            if exists {
+               return true
+            } else {
+               if ( !durationsExist ) {
+                  return (fileItem.durationInSeconds ?? 0) >= (60.0*18.0) // n minutes or more
+               } else {
+                  return false
+               }
+            }
+         })
+         .sorted(by: {
+            f1,f2 in f1.name < f2.name
+         })
+      
+      if orderedMKV.count == episodes.count {
+         // Exact set.
+         for counter in 0..<episodes.count {
+            organizeEpisode(
+               preview: preview,
+               minEpisodeNumber: startingEpisode,
+               episode: episodes[counter],
+               files: [orderedMKV[counter]],
+               basePath: seasonPath,
+               mergeStrategy: mergeStrategy,
+               direct: true,
+               results: &results
+            )
+         }
+      } else {
+         for episode in episodes {
+            organizeEpisode(
+               preview: preview,
+               minEpisodeNumber: startingEpisode,
+               episode: episode,
+               files: files,
+               basePath: seasonPath,
+               mergeStrategy: mergeStrategy,
+               direct: false,
+               results: &results
+            )
+         }
+      }
+   }
     
     /// Organizes a movie according to the parsed content
     /// - Parameters:
@@ -260,34 +334,40 @@ struct FileOrganizer {
     private static func organizeEpisode(
       preview: Bool,
       minEpisodeNumber: Int,
-        episode: Episode,
-        files: [FileItem],
-        basePath: URL,
-        mergeStrategy: MergeStrategy,
-        results: inout OrganizationResults
+      episode: Episode,
+      files: [FileItem],
+      basePath: URL,
+      mergeStrategy: MergeStrategy,
+      direct: Bool,
+      results: inout OrganizationResults
     ) {
-        // Find matching file
-        guard let file = findMatchingFile(
+       let fileItem: FileItem
+       if !direct {
+          // Find matching file
+          guard let file = findMatchingFile(
             files: files,
             minEpisodeNumber: minEpisodeNumber,
             episode: episode,
-            //alternativeCut: episode.alternativeCut
-        ) else {
-            results.warnings.append("No matching file found for: \(episode.title)")
-            return
-        }
-        
+          ) else {
+             results.warnings.append("No matching file found for: \(episode.title)")
+             return
+          }
+          
+          fileItem = file
+       } else {
+          fileItem = files[0]
+       }
+
         // Generate new filename
         let newFilename = generateEpisodeFilename(
             episode: episode,
-            //alternativeCut: episode.alternativeCut
         )
         
        // Move and rename file
-       let destination = basePath.appendingPathComponent(newFilename+"."+file.url.pathExtension)
+       let destination = basePath.appendingPathComponent(newFilename+"."+fileItem.url.pathExtension)
        moveFile(
          preview: preview,
-         from: file.url,
+         from: fileItem.url,
          to: destination,
          mergeStrategy: mergeStrategy,
          results: &results
@@ -463,7 +543,6 @@ struct FileOrganizer {
         files: [FileItem],
         minEpisodeNumber: Int,
         episode: Episode,
-        //alternativeCut: Bool? = nil
     ) -> FileItem? {
        // Filter down to mkv files of a certain size in name sorted order
        let orderedMKV = files
@@ -474,7 +553,7 @@ struct FileOrganizer {
 
              if let episode_duration = episode.duration {
                 let diff = abs(episode_duration - ($0.durationInSeconds ?? 0))
-                return (diff > (60.0*3.0)) // Is the duration within n minutes
+                return (diff < (60.0*3.0)) // Is the duration within n minutes
              } else {
                 return ($0.durationInSeconds ?? 0) >= (60.0*18.0) // n minutes or more
              }
@@ -498,7 +577,7 @@ struct FileOrganizer {
           return orderedMKV[episode.episodeNumber-minEpisodeNumber]
        }
        
-        return nil
+       return nil
     }
     
     /// Finds a matching file for an extra
@@ -557,7 +636,8 @@ struct FileOrganizer {
                if !preview {
                   try? FileManager.default.removeItem(at: destination)
                }
-                fallthrough
+               // Fall through to move
+                break
             case .skip:
                 // Skip moving
                 results.warnings.append("Skipped moving: \(source.lastPathComponent) - destination exists")

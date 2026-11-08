@@ -56,6 +56,7 @@ struct FileBrowserView: View {
    
    // Organize and Tag functionality
    @State var showOrganizePanel: Bool = false
+   @State var organized: Bool = false
 
    var body: some View {
       VStack(alignment: .leading, spacing: 12) {
@@ -99,6 +100,7 @@ struct FileBrowserView: View {
                if showOrganizePanel {
                   OrganizeAndTagView(fileSystem: fileSystem,
                                      showOrganizePanel: $showOrganizePanel,
+                                     organized: $organized,
                                      basePath: organizationPath)
                   .frame(minWidth: 600, minHeight: 400)
                }
@@ -212,6 +214,16 @@ struct FileBrowserView: View {
             print("Error selecting directory: \(error.localizedDescription)")
          }
       }
+      .onChange(of: organized, {
+         if organized {
+            self.selectedFiles.removeAll()
+            self.selectedFileID = nil
+            self.selectedFileIDs.removeAll()
+            self.items.removeAll()
+            let url = URL(fileURLWithPath: self.currentPath)
+            loadDirectoryContents(at: url)
+         }
+      })
     }
    
    // Handles entering a directory if double-clicked

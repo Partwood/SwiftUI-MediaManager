@@ -53,7 +53,7 @@ struct OrganizationPreviewView: View {
                      Section("Episodes") {
                         ForEach(preview.episodes) { episode in
                            HStack {
-                              Text("Episode \(episode.episodeNumber): \(episode.title)")
+                              Text("Episode \(episode.episodeNumber): \(episode.title+((episode.alternativeCut == nil) ? "" : " " + (episode.alternativeCut ?? "")))")
                               Spacer()
                               Text(DurationParser.format(episode.duration))
                                  .foregroundColor(.secondary)

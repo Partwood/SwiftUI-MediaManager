@@ -41,6 +41,7 @@ class ImportPanelViewModel: ObservableObject {
         mediaType: MediaType
     ) -> OrganizationPreview? {
         guard !content.episodes.isEmpty || !content.extras.isEmpty else {
+           parsingWarnings.append("No episodes or extras found")
             return nil
         }
         

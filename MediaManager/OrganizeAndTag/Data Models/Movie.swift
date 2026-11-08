@@ -9,8 +9,8 @@ import Foundation
 
 // MARK: - Movie Struct
 struct Movie: Codable, Identifiable {
-   //var id = UUID()
-   var id: String { title }
+   var id: UUID// = { UUID() }
+   //var id: String { title }
    
    var title: String
    var plot: String?
@@ -21,6 +21,7 @@ struct Movie: Codable, Identifiable {
    var cast: [Cast]
    
    init(title: String, plot: String? = nil, year: Int? = nil, director: String? = nil, runtime: TimeInterval? = nil, genre: [String]? = nil, cast: [Cast] = []) {
+      self.id = UUID()
       self.title = title
       self.plot = plot
       self.year = year
