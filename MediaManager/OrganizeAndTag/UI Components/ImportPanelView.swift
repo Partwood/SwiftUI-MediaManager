@@ -11,16 +11,16 @@ import SwiftUI
 struct ImportPanelView: View {
    @StateObject private var viewModel = ImportPanelViewModel()
 
-   @State var showTitle: String = ""
+   @State var showtitle: String = ""
    @State var selectedMediaType: MediaType = .tvShow
-   @State var seasonNumber: Int = 1
-   @State var episodeNumber: Int = 1
    @State var basePath: URL = URL(fileURLWithPath: "/Users")
    @State var mergeStrategy: MergeStrategy = .rename
    @State var isShowingFolderPicker: Bool = false
    
    @State var fileSystem: FileSystem
    
+   @Binding var seasonNumber: Int
+   @Binding var episodeNumber: Int
    @Binding var showOrganizePanel: Bool
    @Binding var organizationPreview: OrganizationPreview?
    @Binding var organizationResults: OrganizationResults?
@@ -41,13 +41,13 @@ struct ImportPanelView: View {
             // Show Information
             Section(header: Text("Show Information")) {
                 if selectedMediaType == .tvShow {
-                    TextField("Show Title", text: $showTitle)
+                    TextField("Show Title", text: $showtitle)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                     
                     Stepper("Season: \(seasonNumber)", value: $seasonNumber, in: 1...10)
-                   Stepper("Start Episode: \(episodeNumber)", value: $episodeNumber, in: 1...14)
+                   Stepper("Start Episode: \(episodeNumber)", value: $episodeNumber, in: 1...31)
                 } else {
-                    TextField("Movie Title", text: $showTitle)
+                    TextField("Movie Title", text: $showtitle)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
                 }
             }
@@ -137,6 +137,8 @@ struct ImportPanelView: View {
 }
 
 #Preview {
+   @Previewable @State var seasonNumber: Int = 1
+   @Previewable @State var episodeNumber: Int = 1
    @Previewable @State var showOrganizePanel: Bool = false
    @Previewable @State var organizationPreview: OrganizationPreview? = nil
    @Previewable @State var organizationResults: OrganizationResults? = nil
@@ -147,6 +149,8 @@ struct ImportPanelView: View {
    
    ImportPanelView(
       fileSystem: fileSystem,
+      seasonNumber: $seasonNumber,
+      episodeNumber: $episodeNumber,
       showOrganizePanel: $showOrganizePanel,
       organizationPreview: $organizationPreview,
       organizationResults: $organizationResults,

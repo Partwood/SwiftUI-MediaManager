@@ -493,7 +493,7 @@ enum FileOrganizer {
 struct NFOGenerator {
     func generateEpisodeNFO(
         episode: Episode,
-        showTitle: String,
+        showtitle: String,
         season: Int,
         basePath: URL
     ) throws -> URL

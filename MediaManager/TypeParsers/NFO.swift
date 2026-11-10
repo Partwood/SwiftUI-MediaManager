@@ -10,6 +10,7 @@ import Foundation
 // NFO Metadata structures for Jellyfin/NFO file support
 struct NFOMetadata: Identifiable {
    let id = UUID()
+   var showtitle: String?
    var title: String?
    var plot: String?
    var year: String?
@@ -165,39 +166,7 @@ class NFOParser {
       }
       return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
    }
-   
-   //      private func extractTagName(from xml: String) -> String {
-   //         let start = xml.firstIndex(of: "<") ?? xml.startIndex
-   //         let end = xml.firstIndex(of: ">") ?? xml.endIndex
-   //         let tag = String(xml[start..<end]).replacingOccurrences(of: "<", with: "").replacingOccurrences(of: ">", with: "")
-   //         let components = tag.components(separatedBy: " ")
-   //         return components.first ?? ""
-   //      }
-   //
-   //      private func extractTextContent(from xml: String) -> String {
-   //         // Remove opening and closing tags
-   //         let start = xml.firstIndex(of: "<") ?? xml.endIndex
-   //         let end = xml.lastIndex(of: ">") ?? xml.startIndex
-   //
-   //         // Handle self-closing tags
-   //         if xml.contains(" /") {
-   //            return ""
-   //         }
-   //
-   //         let content = String(xml[start..<end])
-   //         // Remove nested tags
-   //         var cleaned = content
-   //         while let nestedTag = cleaned.firstIndex(of: "<") {
-   //            let endTag = cleaned[nestedTag..<cleaned.endIndex].firstIndex(of: ">")
-   //            if let endTag = endTag, nestedTag != endTag {
-   //               cleaned.replaceSubrange(nestedTag...cleaned.index(cleaned.index(endTag, offsetBy: 1), limitedBy: cleaned.endIndex)!) with: "")
-   //            } else {
-   //               break
-   //            }
-   //         }
-   //         return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
-   //      }
-   
+      
    private func extractMovieMetadata(from content: String, into metadata: inout NFOMetadata) {
       // Extract title
       if let titleRange = content.range(of: "<title>") {
@@ -334,8 +303,17 @@ class NFOParser {
          }
       }
    }
-   
+
    private func extractTVMetadata(from content: String, into metadata: inout NFOMetadata) {
+      // Extract showtitle
+      if let sRange = content.range(of: "<showtitle>") {
+         let eRange = content.range(of: "</showtitle>")
+         if let eRange = eRange, eRange.lowerBound > sRange.upperBound {
+            metadata.showtitle = String(content[sRange.upperBound..<eRange.lowerBound])
+               .trimmingCharacters(in: .whitespacesAndNewlines)
+         }
+      }
+
       // Extract network
       if let networkRange = content.range(of: "<network>") {
          let endRange = content.range(of: "</network>")

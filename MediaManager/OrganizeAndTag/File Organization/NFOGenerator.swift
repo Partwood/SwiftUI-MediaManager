@@ -13,21 +13,17 @@ struct NFOGenerator {
     /// Generates an episode NFO file
     /// - Parameters:
     ///   - episode: Episode data
-    ///   - showTitle: Title of the TV show
+    ///   - showtitle: Title of the TV show
     ///   - season: Season number
     ///   - basePath: Base directory path
     /// - Returns: URL to the generated NFO file
     static func generateEpisodeNFO(
       preview: Bool,
-        episode: Episode,
-        showTitle: String,
-        season: Int,
+      episode: Episode,
+      showtitle: String,
+      season: Int,
       url: URL
-        //basePath: URL
     ) throws {
-        //let filename = "\(episode.episodeNumber) - \(episode.title).nfo"
-        //let url = basePath.appendingPathComponent(filename)
-        
        if !preview {
           // Create parent directory if needed
           try FileManager.default.createDirectory(
@@ -37,14 +33,12 @@ struct NFOGenerator {
           
           let content = generateEpisodeNFOContent(
             episode: episode,
-            showTitle: showTitle,
+            showtitle: showtitle,
             season: season
           )
           
           try content.write(to: url, atomically: true, encoding: .utf8)
        }
-       
-        //return url
     }
     
     /// Generates a movie NFO file
@@ -140,7 +134,7 @@ struct NFOGenerator {
     /// Generates NFO content for an episode
     private static func generateEpisodeNFOContent(
         episode: Episode,
-        showTitle: String,
+        showtitle: String,
         season: Int
     ) -> String {
        
@@ -181,7 +175,7 @@ struct NFOGenerator {
                """
                <?xml version="1.0" encoding="UTF-8"?>
                <episodedetails>
-                   <showtitle>\(escapeXML(showTitle))</showtitle>
+                   <showtitle>\(escapeXML(showtitle))</showtitle>
                    <title>\(episodeTitle)</title>
                \(plot)
                    <season>\(season)</season>

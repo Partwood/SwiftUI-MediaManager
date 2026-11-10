@@ -419,6 +419,15 @@ struct NFOInformation: View {
          Section {
             // Basic NFO Info
             VStack(alignment: .leading, spacing: 4) {
+               Label("Show Title", systemImage: "text.badge.plus")
+                  .font(.subheadline)
+                  .foregroundColor(.secondary)
+               Text(nfoMetadata.showtitle ?? "N/A")
+                  .font(.body)
+                  .foregroundColor(.primary)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
                Label("Title", systemImage: "text.badge.plus")
                   .font(.subheadline)
                   .foregroundColor(.secondary)

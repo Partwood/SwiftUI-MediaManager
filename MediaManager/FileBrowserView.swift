@@ -280,7 +280,18 @@ struct FileBrowserView: View {
                 durationInSeconds = nil
              }
              
-             return FileItem(url: item.url,name: item.name, isDirectory: item.isDirectory, path: currentPath + "/" + item.name, size: item.attributes?.fileSize ?? 0, type: fileType, creationDate: nil, modifiedDate: nil, contentType: contentType, durationInSeconds: durationInSeconds)
+             let fileItem = FileItem(
+               url: item.url,
+               name: item.name,
+               isDirectory: item.isDirectory,
+               path: item.url.filePath,
+               size: item.attributes?.fileSize ?? 0,
+               type: fileType,
+               creationDate: nil,
+               modifiedDate: nil,
+               contentType: contentType,
+               durationInSeconds: durationInSeconds)
+             return fileItem
           }
           
           if ( url != securityRoot ) {

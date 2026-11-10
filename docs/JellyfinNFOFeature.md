@@ -3,6 +3,8 @@
 ## Overview
 This document describes the implementation of Jellyfin/NFO file support for the MediaManager macOS application. NFO files (Note FOundation) are XML-based metadata files commonly used in media collections (movies, TV shows) to store information like plot summaries, cast, crew, ratings, and more.
 
+See [Jellyfin NFO](https://jellyfin.org/docs/general/server/metadata/nfo/)
+
 ## User Flow
 
 ### 1. NFO File Detection

@@ -84,19 +84,23 @@ struct FileOrganizer {
              movedFile.src.url == fileItem.url
           })
        }).forEach({ remainingFile in
-          let newFilename = extrasPath.appendingPathComponent(remainingFile.url.lastPathComponent)
-          moveFile(preview: preview,
-                   from: remainingFile.url,
-                   to: newFilename,
-                   mergeStrategy: mergeStrategy,
-                   results: &results)
+          if remainingFile.url.filePath.contains(extrasPath.filePath) {
+             debug("Skipping, already in extras")
+          } else {
+             let newFilename = extrasPath.appendingPathComponent(remainingFile.url.lastPathComponent)
+             moveFile(preview: preview,
+                      from: remainingFile.url,
+                      to: newFilename,
+                      mergeStrategy: mergeStrategy,
+                      results: &results)
+          }
        })
         
         // Generate NFO files
         generateNFOFiles(
          preview: preview,
             episodes: content.episodes,
-            showTitle: content.title,
+            showtitle: content.title,
             season: content.season ?? 1,
             basePath: seasonPath,
             mergeStrategy: mergeStrategy,
@@ -121,11 +125,16 @@ struct FileOrganizer {
                                         seasonPath: URL,
                                         mergeStrategy: MergeStrategy,
                                         results: inout OrganizationResults) {
-      // Filter down to mkv files of a certain size in name sorted order
+      // Filter down to mkv files of a certain size in name sorted order in the seasonPath directory
       let orderedMKV = files
          .filter({ fileItem in
             // By type (mkv) duration must be some min and duration must be found in the set of episodes
             if (fileItem.contentType != .mkv) {
+               return false
+            }
+            
+            if ( fileItem.url.deletingLastPathComponent().filePath != seasonPath.filePath ) {
+               // Is not directly in seasonPath
                return false
             }
             
@@ -154,8 +163,8 @@ struct FileOrganizer {
             f1,f2 in f1.name < f2.name
          })
       
-      if orderedMKV.count == episodes.count {
-         // Exact set.
+      if orderedMKV.count >= episodes.count {
+         // Exact or episode set is smaller (than filtered files).
          for counter in 0..<episodes.count {
             organizeEpisode(
                preview: preview,
@@ -412,14 +421,15 @@ struct FileOrganizer {
     private static func generateNFOFiles(
       preview: Bool,
         episodes: [Episode],
-        showTitle: String,
+        showtitle: String,
         season: Int,
         basePath: URL,
         mergeStrategy: MergeStrategy,
         results: inout OrganizationResults
     ) {
        for episode in episodes {
-          let filename = "\(String(format: "%02d", episode.episodeNumber)) - \(episode.title).nfo"
+          let episodeName = generateEpisodeFilename(episode: episode)
+          let filename = episodeName + ".nfo"
           let url = basePath.appendingPathComponent(filename)
           
           do {
@@ -430,7 +440,7 @@ struct FileOrganizer {
                    try NFOGenerator.generateEpisodeNFO(
                      preview: preview,
                      episode: episode,
-                     showTitle: showTitle,
+                     showtitle: showtitle,
                      season: season,
                      url: url
                    )
@@ -447,7 +457,7 @@ struct FileOrganizer {
                    try NFOGenerator.generateEpisodeNFO(
                      preview: preview,
                      episode: episode,
-                     showTitle: showTitle,
+                     showtitle: showtitle,
                      season: season,
                      url: url
                    )
@@ -460,7 +470,7 @@ struct FileOrganizer {
                 try NFOGenerator.generateEpisodeNFO(
                   preview: preview,
                   episode: episode,
-                  showTitle: showTitle,
+                  showtitle: showtitle,
                   season: season,
                   url: url
                 )
@@ -598,10 +608,9 @@ struct FileOrganizer {
         return nil
     }
     
-    /// Generates filename for an episode
+    /// Generates filename for an episode, no extension
     private static func generateEpisodeFilename(
         episode: Episode,
-        //alternativeCut: Bool? = nil
     ) -> String {
         var filename = "\(String(format: "%02d", episode.episodeNumber)) - \(episode.title)"
         

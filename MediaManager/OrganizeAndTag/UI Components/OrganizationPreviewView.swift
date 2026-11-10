@@ -12,7 +12,7 @@ import Combine
 struct OrganizationPreviewView: View {
    @State private var showConfirmationDialog: Bool = false
    @State private var selectedMediaType: MediaType = .tvShow
-   @State private var showTitle: String = ""
+   @State private var showtitle: String = ""
    @State private var seasonNumber: Int = 1
    @State private var isShowingFolderPicker: Bool = false
    
@@ -156,7 +156,7 @@ struct OrganizationPreviewView: View {
          ConfirmationDialog(
             results: results,
             mediaType: selectedMediaType,
-            title: showTitle,
+            title: showtitle,
             startOrganization: $startOrganization
          )
       }

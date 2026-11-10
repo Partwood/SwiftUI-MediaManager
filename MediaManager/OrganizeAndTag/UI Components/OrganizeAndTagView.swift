@@ -17,7 +17,7 @@ struct OrganizeAndTagView: View {
 
    @StateObject private var viewModel = OrganizeAndTagViewModel()
    @State private var content: String = ""
-   @State private var showTitle: String = ""
+   @State private var showtitle: String = ""
    @State private var selectedMediaType: MediaType = .tvShow
    @State private var seasonNumber: Int = 1
    @State private var episodeNumber: Int = 1
@@ -41,19 +41,19 @@ struct OrganizeAndTagView: View {
         TabView(selection: $activeTab) {
             // Import Panel Tab
             ImportPanelView(
-                showTitle: showTitle,
-                selectedMediaType: selectedMediaType,
-                seasonNumber: seasonNumber,
-                episodeNumber: episodeNumber,
-                basePath: basePath,
-                mergeStrategy: mergeStrategy,
-                isShowingFolderPicker: isShowingFolderPicker,
-                fileSystem: fileSystem,
-                showOrganizePanel: $showOrganizePanel,
-                organizationPreview: $viewModel.organizationPreview,
-                organizationResults: $viewModel.organizationResults,
-                appTab: $activeTab,
-                content: $content
+               showtitle: showtitle,
+               selectedMediaType: selectedMediaType,
+               basePath: basePath,
+               mergeStrategy: mergeStrategy,
+               isShowingFolderPicker: isShowingFolderPicker,
+               fileSystem: fileSystem,
+               seasonNumber: $seasonNumber,
+               episodeNumber: $episodeNumber,
+               showOrganizePanel: $showOrganizePanel,
+               organizationPreview: $viewModel.organizationPreview,
+               organizationResults: $viewModel.organizationResults,
+               appTab: $activeTab,
+               content: $content
             )
             .tabItem {
                Label("Import", systemImage: "tag")
