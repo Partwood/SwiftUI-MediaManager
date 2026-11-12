@@ -46,7 +46,7 @@ struct OrganizeAndTagView: View {
                basePath: basePath,
                mergeStrategy: mergeStrategy,
                isShowingFolderPicker: isShowingFolderPicker,
-               fileSystem: fileSystem,
+               fileSystem: $fileSystem,
                seasonNumber: $seasonNumber,
                episodeNumber: $episodeNumber,
                showOrganizePanel: $showOrganizePanel,

@@ -483,3 +483,13 @@ extension FileSystem {
       return foundItems
    }
 }
+
+extension FileSystem {
+   func moveFile(src: URL,dst: URL) throws {
+      try FileManager.default.moveItem(at: src, to: dst)
+   }
+
+   func delete(src: URL) throws {
+      try FileManager.default.removeItem(at: src)
+   }
+}

@@ -17,7 +17,7 @@ struct ImportPanelView: View {
    @State var mergeStrategy: MergeStrategy = .rename
    @State var isShowingFolderPicker: Bool = false
    
-   @State var fileSystem: FileSystem
+   @Binding var fileSystem: FileSystem
    
    @Binding var seasonNumber: Int
    @Binding var episodeNumber: Int
@@ -55,8 +55,12 @@ struct ImportPanelView: View {
             // Base Directory
             Section(header: Text("Base Directory")) {
                 VStack {
-                    Text(basePath.filePath)
-                    .font(.headline)
+                   Text(basePath.filePath)
+                      .font(.headline)
+                   
+                   Button("Cleanup Directory") {
+                      cleanup()
+                   }
                 }
             }
             
@@ -132,8 +136,100 @@ struct ImportPanelView: View {
         .navigationTitle("Import Metadata")
         .onAppear {
             viewModel.loadSampleContent()
+           searchEpisodeNumbers()
         }
     }
+
+   /**
+     Get the content of parent in sorted order
+     Find dir before 'here'
+     Read the nfo files if present, get season and highest episode number
+     Set season and highest+1
+    */
+   private func searchEpisodeNumbers() {
+      fileSystem.accessURL(basePath, { inPath in
+         guard let currentPath = inPath else {
+            // No path
+            return
+         }
+         
+         do {
+            let parentPath = currentPath.deletingLastPathComponent()
+            let siblings = try fileSystem.listDirectory(at: parentPath.filePath)
+            let sortedSiblings = siblings.sorted(by: { s1,s2 in s1.name < s2.name })
+            if let myIndex = sortedSiblings.firstIndex(where: { file in file.name == currentPath.lastPathComponent }) {
+               if myIndex == sortedSiblings.startIndex {
+                  // We are the first directory.
+                  return
+               }
+               
+               let priorIndex = sortedSiblings.index(before: myIndex)
+               let prior = sortedSiblings[priorIndex]
+               
+               let siblingContent = try fileSystem.listDirectory(at: prior.url.filePath)
+               
+               var highestSeason: Int = 1
+               var highestEpisode: Int = 1
+               
+               siblingContent.forEach({ siblingContentFile in
+                  if siblingContentFile.url.pathExtension != "nfo" {
+                     return
+                  }
+                  
+                  do {
+                     let metadata = try NFOParser().parseNFOMetadata(fileSystem, siblingContentFile.url)
+                     
+                     highestSeason = max(highestSeason, metadata.metadata.seasonNumber ?? 1)
+                     highestEpisode = max(highestEpisode, metadata.metadata.episodeNumber ?? 1)
+                  } catch {
+                     logError(error)
+                  }
+               })
+               
+               self.seasonNumber = highestSeason
+               self.episodeNumber = highestEpisode+1
+            }
+         } catch {
+            logError(error)
+         }
+      })
+   }
+   
+   private func cleanup() {
+      debug("Cleanup")
+      fileSystem.accessURL(basePath, { inPath in
+         guard let cleanupPath = inPath else {
+            return
+         }
+         
+         do {
+            let contents = try fileSystem.listDirectory(at: cleanupPath.filePath)
+            if contents.count == 1,
+               let content = contents.first {
+               if ( content.isDirectory && (content.name == "Disc01" || content.name == "Disc 01" || content.name == "Disc_01" )) {
+                  let children = try fileSystem.listDirectory(at: content.url.filePath)
+                  children.forEach({ child in
+                     let dst: URL = cleanupPath.appending(path: child.url.lastPathComponent)
+                     do {
+                        try fileSystem.moveFile(src: child.url, dst: dst)
+                     } catch {
+                        logError(error)
+                     }
+                  })
+                  
+                  let remainingChildren = try fileSystem.listDirectory(at: content.url.filePath)
+                  if ( remainingChildren.count == 0 ) {
+                     try fileSystem.delete(src: content.url)
+                  }
+               }
+            }
+         } catch {
+            logError(error)
+         }
+         
+         showOrganizePanel = false
+      })
+   }
 }
 
 #Preview {
@@ -145,10 +241,10 @@ struct ImportPanelView: View {
    @Previewable @State var appTab: OrganizeAndTagView.AppTab = .import_view
    @Previewable @State var content: String = ""
    
-   let fileSystem = FileSystem(URL(fileURLWithPath: "/Users"))
+   @Previewable @State var fileSystem = FileSystem(URL(fileURLWithPath: "/Users"))
    
    ImportPanelView(
-      fileSystem: fileSystem,
+      fileSystem: $fileSystem,
       seasonNumber: $seasonNumber,
       episodeNumber: $episodeNumber,
       showOrganizePanel: $showOrganizePanel,

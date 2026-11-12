@@ -222,6 +222,18 @@ struct FileBrowserView: View {
             self.items.removeAll()
             let url = URL(fileURLWithPath: self.currentPath)
             loadDirectoryContents(at: url)
+            self.organized = false
+         }
+      })
+      .onChange(of: showOrganizePanel, {
+         if !showOrganizePanel {
+            self.selectedFiles.removeAll()
+            self.selectedFileID = nil
+            self.selectedFileIDs.removeAll()
+            self.items.removeAll()
+            let url = URL(fileURLWithPath: self.currentPath)
+            loadDirectoryContents(at: url)
+            self.organized = false
          }
       })
     }
