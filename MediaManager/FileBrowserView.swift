@@ -169,7 +169,8 @@ struct FileBrowserView: View {
             if showMetadataPanel,
                !selectedFileIDs.isEmpty,
                let viewModel = metadataViewModel {
-               FileMetadataView(viewModel: viewModel, selectedFileID: $selectedFileID, showMetadataPanel: $showMetadataPanel)
+               let fileSystem = FileSystem(rootDirectoryURL)
+               FileMetadataView(viewModel: viewModel, fileSystem: fileSystem,selectedFileID: $selectedFileID, showMetadataPanel: $showMetadataPanel)
                   .padding(0)
                   .frame(width: 400)
                   .transition(.move(edge: .trailing).combined(with: .opacity))
@@ -382,22 +383,22 @@ extension View {
          .onTapGesture(count: 2) {
             action(file)
          }
-         .onTapGesture(count: 1) {
-            let existed = outerView.selectedFileIDs.contains(file.id)
-            if outerView.modifierKeys.none {
-               outerView.selectedFileIDs.removeAll()
-               if ( !existed ) {
-                  outerView.selectedFileIDs.insert(file.id)
-               }
-            } else {
-               // Should do a range if using shift
-               if ( !existed ) {
-                  outerView.selectedFileIDs.insert(file.id)
-               } else {
-                  outerView.selectedFileIDs.remove(file.id)
-               }
-            }
-         }
+//         .onTapGesture(count: 1) {
+//            let existed = outerView.selectedFileIDs.contains(file.id)
+//            if outerView.modifierKeys.none {
+//               outerView.selectedFileIDs.removeAll()
+//               if ( !existed ) {
+//                  outerView.selectedFileIDs.insert(file.id)
+//               }
+//            } else {
+//               // Should do a range if using shift
+//               if ( !existed ) {
+//                  outerView.selectedFileIDs.insert(file.id)
+//               } else {
+//                  outerView.selectedFileIDs.remove(file.id)
+//               }
+//            }
+//         }
    }
 }
 

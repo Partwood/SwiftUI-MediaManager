@@ -4,14 +4,24 @@ import ImageIO
 
 struct FileMetadataView: View {
    @ObservedObject var viewModel: FileMetadataViewModel
+
+   struct AlertInfo {
+      var alert_title: String
+      var alert_message: String
+      var alert_ok: String
+   }
+
+   @State var alert_show: Bool = false
+   @State var alert: AlertInfo?
    
+   @State var fileSystem: FileSystem?
    @Binding var selectedFileID: FileItem.ID?
    @Binding var showMetadataPanel: Bool
         
       var body: some View {
          List {
             VStack(alignment: .leading, spacing: 0) {
-               Upper(viewModel: viewModel,selectedFileID: $selectedFileID,showMetadataPanel: $showMetadataPanel)
+               Upper(viewModel: viewModel,fileSystem: $fileSystem,selectedFileID: $selectedFileID,showMetadataPanel: $showMetadataPanel,alert_show: $alert_show,alert: $alert)
                
                Divider()
                   .padding(.vertical, 5)
@@ -31,20 +41,47 @@ struct FileMetadataView: View {
          .padding(0)
          .listStyle(.plain)
     }
+//      .alert("Processing Error", isPresented: .constant(alert_show)) {
+//         ForEach(errorMessages, id: \.self) { error in
+//            Button(error) { }
+//         }
+//         Button("OK") {
+//            errorMessages = []
+//         }
+//      } message: {
+//         Text(errorMessages.joined(separator: "\n"))
+//      }
+//      .alert("Permission Required", isPresented: $alert_show) {
+//         Button("OK", role: .cancel) { }
+//      } message: {
+//         Text("Unable to open this location in Finder. Please grant folder access to continue.")
+//      }
 }
 
 struct Upper: View {
    @ObservedObject var viewModel: FileMetadataViewModel
 
+   @Binding var fileSystem: FileSystem?
    @Binding var selectedFileID: FileItem.ID?
    @Binding var showMetadataPanel: Bool
 
+   @Binding var alert_show: Bool
+   @Binding var alert: FileMetadataView.AlertInfo?
+
    private func showInFinder(_ url: URL) {
-      NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path(percentEncoded: false))
+      NSWorkspace.shared.activateFileViewerSelecting([url])
+      //NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path(percentEncoded: false))
    }
    
    private func openFile(_ url: URL) {
-      NSWorkspace.shared.open(url)
+      if let fileSystem {
+         fileSystem.accessURL(url, { inURL in
+            NSWorkspace.shared.open(url)
+         })
+      } else {
+         alert = FileMetadataView.AlertInfo(alert_title: "Cannot Open", alert_message: "No permission to open files.", alert_ok: "Ok")
+         alert_show = true
+      }
    }
    
    private func copyMetadata() {
