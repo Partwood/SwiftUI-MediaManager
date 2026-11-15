@@ -259,7 +259,6 @@ struct DVDCompareParser {
     /// Parses an episode line
     static func parseEpisodeLine(_ line: String) -> Episode? {
         // Pattern: '- "Episode Title" (MM:SS)' OR '"Episode Title" (MM:SS)'; Time could be optional
-       //let pattern = "^(-\\s*)?\"?([^\"\\n]+)\"?(?:\\s*[^\\(\\n]*)?(\\((\\d{1,2}:\\d{2})\\))?"
        let titlePattern = "^(-\\s*)?\"?([^\"\\n]+)\"?(?:\\s*[^\\(\\n]*)?(\\((\\d{1,2}:\\d{2})\\))?"
        //              (prefix)   (name     )   (!'(' and !'\n'  ) (duration               )
         guard let regex = try? NSRegularExpression(pattern: titlePattern, options: .caseInsensitive),
@@ -485,78 +484,70 @@ struct DVDCompareParser {
     
     /// Parses an extra line
     private static func parseExtraLine(_ line: String) -> Extra? {
-        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-        // Check for featurette pattern: "Shooting Bond" featurettes
-        if trimmed.contains("featurettes") || trimmed.contains("featurette") {
-            let type = ExtraType.featurette
-            
-            // Extract title before "featurettes"
-            let title = trimmed.split(separator: "featurettes").first?.trimmingCharacters(in: .whitespacesAndNewlines)
-                ?? trimmed
-            
-           return Extra(
-            title: title,
-            duration: 0,
-            extraType: type,
-            episodeNumber: nil,
-            episodeTitle: nil,
-            relatedEpisodeId: nil
-           )
-        }
-        
-        // Check for standalone extra: "Shooting Bond" featurettes (w/ play all option) (12:25)
-        if let durationMatch = trimmed.range(of: "\\((\\d{1,2}):(\\d{2})\\)", options: .regularExpression) {
-            let duration = DurationParser.parse(String(trimmed[durationMatch])) ?? 0
-            
-            // Determine type based on keywords
-            let type = detectExtraType(from: trimmed)
-            
-            let title = trimmed
-                .replacingOccurrences(of: "\\(", with: "")
-                .replacingOccurrences(of: "\\)", with: "")
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            return Extra(
-                title: title,
-                duration: duration,
-                extraType: type,
-                episodeNumber: nil,
-                episodeTitle: nil,
-                relatedEpisodeId: nil
-            )
-        }
-        
-        return nil
+       var titleCandidate: String = line.trimmingCharacters(in: .whitespacesAndNewlines)
+       if ( titleCandidate.isEmpty ) {
+          return nil
+       }
+       
+       let duration: TimeInterval
+       if let results = DurationParser.parse(duration: titleCandidate) {
+          // We have a duration
+          duration = results.duration
+          titleCandidate = String(titleCandidate[..<results.start])
+       } else {
+          duration = 0
+       }
+       
+       guard let results = detectExtraType(from: titleCandidate) else {
+          return nil
+       }
+       
+       let type = results.extraType
+       titleCandidate = String(titleCandidate[..<results.index])
+
+       let title = titleCandidate
+          .trimmingCharacters(in: .whitespacesAndNewlines)
+          .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
+
+       return Extra(
+         title: title,
+         duration: duration,
+         extraType: type,
+         episodeNumber: nil,
+         episodeTitle: nil,
+         relatedEpisodeId: nil
+       )
     }
     
     /// Detects extra type from line content
-    private static func detectExtraType(from line: String) -> ExtraType {
-        let lowerLine = line.lowercased()
-        
-        if lowerLine.contains("commentary") {
-            return .commentary
-        } else if lowerLine.contains("deleted") || lowerLine.contains("scene") {
-            return .deletedScene
-        } else if lowerLine.contains("music video") {
-            return .musicVideo
-        } else if lowerLine.contains("trailer") {
-            return .trailer
-        } else if lowerLine.contains("featurette") {
-            return .featurette
-        } else if lowerLine.contains("behind") {
-            return .behindTheScenes
-        } else if lowerLine.contains("making") {
-            return .makingOf
-        } else if lowerLine.contains("interview") {
-            return .interview
-        } else if lowerLine.contains("documentary") {
-            return .documentary
-        }
-        
-        return .other
-    }
-    
+private static func detectExtraType(from line: String) -> (extraType: ExtraType,index: String.Index)? {
+      let lowerLine = line.lowercased()
+      
+      if let startIndex = lowerLine.index(of: "commentary") {
+         return (.commentary,startIndex)
+      } else if let startIndex = lowerLine.index(of: "deleted") {
+         return (.deletedScene,startIndex)
+      } else if let startIndex = lowerLine.index(of: "scene") {
+         return (.deletedScene,startIndex)
+      } else if let startIndex = lowerLine.index(of: "music video") {
+         return (.musicVideo,startIndex)
+      } else if let startIndex = lowerLine.index(of: "trailer") {
+         return (.trailer,startIndex)
+      } else if let startIndex = lowerLine.index(of: "feature") {
+         return (.featurette,startIndex)
+      } else if let startIndex = lowerLine.index(of: "behind") {
+         return (.behindTheScenes,startIndex)
+      } else if let startIndex = lowerLine.index(of: "making") {
+         return (.makingOf,startIndex)
+      } else if let startIndex = lowerLine.index(of: "interview") {
+         return (.interview,startIndex)
+      } else if let startIndex = lowerLine.index(of: "documentary") {
+         return (.documentary,startIndex)
+      } else {
+         return nil
+      }
+   }
+
     /// Parses featurettes section
     private static func parseFeaturettes(from input: String, startingAt offset: String.Index, 
                                         into content: inout DVDCompareContent) {

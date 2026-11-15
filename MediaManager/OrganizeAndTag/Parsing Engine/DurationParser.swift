@@ -10,6 +10,29 @@ import Foundation
 /// Parses duration strings from various formats
 struct DurationParser {
     
+   // Assumes or looks for "(MM:SS)" or "(M:SS)"
+   static func parse(duration value: String) -> (duration: TimeInterval,start: String.Index)? {
+      // Check for "(MM:SS)" or "(M:SS)"
+      guard let range = value.range(of: "\\((\\d{1,2}):(\\d{2})\\)", options: .regularExpression) else {
+         return nil
+      }
+      
+      let trimmed: String = String(value[range])
+      
+      // Pattern for MM:SS or M:SS
+      let pattern = "^\\s*(?:\\()?(\\d+):(\\d{2})(?:\\))?\\s*$"
+      guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive),
+            let match = regex.firstMatch(in: trimmed, range: NSRange(trimmed.startIndex..., in: trimmed)) else {
+         return nil
+      }
+      
+      let hours:Int = 0
+      let minutes:Int = Int(trimmed.string(match.range(at: 1)) ?? "") ?? 0
+      let seconds:Int = Int(trimmed.string(match.range(at: 2)) ?? "") ?? 0
+      
+      return ( TimeInterval(hours * (60*60) + minutes * 60 + seconds), range.lowerBound)
+   }
+   
     /// Converts a duration string to TimeInterval
     /// - Parameter duration: Duration string in formats like "21:32", "M:SS", "MM:SS"
     /// - Returns: TimeInterval in seconds, or nil if parsing fails

@@ -14,7 +14,6 @@ extension String {
          output = output.flatMap { $0.components(separatedBy: separator) }
       }
       return output.map { $0 }
-      //return output.map { $0.trimmingCharacters(in: .whitespaces)}
    }
    
    // lowerBound
@@ -45,6 +44,17 @@ extension String {
          return String(self[stringRange])
       } else {
          return nil
+      }
+   }
+   
+   func index(of substring: String) -> String.Index? {
+      guard let range = self.range(of: substring) else { return nil }
+      
+      // Check if the substring exists
+      if range.lowerBound >= self.endIndex {
+         return nil
+      } else {
+         return range.lowerBound
       }
    }
 }

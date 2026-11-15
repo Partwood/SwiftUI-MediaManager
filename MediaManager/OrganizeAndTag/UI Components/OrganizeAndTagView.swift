@@ -39,7 +39,7 @@ struct OrganizeAndTagView: View {
    
     var body: some View {
         TabView(selection: $activeTab) {
-            // Import Panel Tab
+            // MARK: Import Panel Tab
             ImportPanelView(
                showtitle: showtitle,
                selectedMediaType: selectedMediaType,
@@ -113,7 +113,7 @@ struct OrganizeAndTagView: View {
    private func organize() {
       let importViewModel = ImportPanelViewModel()
       
-      importViewModel.parse(content: content, mediaType: selectedMediaType, startingEpisode: episodeNumber)
+      importViewModel.parse(content: content, startingEpisode: episodeNumber)
       
       let organizeAndTagViewModel = OrganizeAndTagViewModel()
       organizeAndTagViewModel.organizationPreview = importViewModel.organizationPreview

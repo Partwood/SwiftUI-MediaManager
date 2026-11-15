@@ -83,7 +83,7 @@ struct ImportPanelView: View {
             // Actions
             Section {
                 Button("Parse & Preview") {
-                   viewModel.parse(content: content, mediaType: selectedMediaType, startingEpisode: episodeNumber)
+                   viewModel.parse(content: content, startingEpisode: episodeNumber)
                    self.organizationPreview = viewModel.organizationPreview
                    
                    if (self.organizationPreview == nil) {

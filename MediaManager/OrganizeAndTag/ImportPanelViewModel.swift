@@ -16,7 +16,7 @@ class ImportPanelViewModel: ObservableObject {
     @Published var organizationPreview: OrganizationPreview?
     
     /// Parses the input content
-   func parse(content: String, mediaType: MediaType,startingEpisode: Int? = nil) {
+   func parse(content: String/*, mediaType: MediaType*/,startingEpisode: Int? = nil) {
       guard !content.isEmpty else {
          parsingWarnings.append("Please enter the content to parse")
          return
@@ -31,7 +31,7 @@ class ImportPanelViewModel: ObservableObject {
       // Generate preview
       self.organizationPreview = generatePreview(
          content: parsed,
-         mediaType: mediaType
+         mediaType: parsed.type
       )
     }
     

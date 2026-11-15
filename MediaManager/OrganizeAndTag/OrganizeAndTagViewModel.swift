@@ -41,7 +41,7 @@ class OrganizeAndTagViewModel: ObservableObject {
       }
       
       let viewModel = ImportPanelViewModel()
-      viewModel.parse(content: content, mediaType: mediaType, startingEpisode: startingEpisode)
+      viewModel.parse(content: content, startingEpisode: startingEpisode)
       
       DispatchQueue.main.async {
          self.organizationPreview = viewModel.organizationPreview
@@ -91,6 +91,7 @@ class OrganizeAndTagViewModel: ObservableObject {
          } else {
             results = FileOrganizer.organizeMovie(
                preview: preview,
+               movieTitle: organization_preview.title,
                files: files,
                content: createContent(from: organization_preview),
                basePath: basePath,

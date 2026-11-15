@@ -193,15 +193,18 @@ struct FileOrganizer {
       }
    }
     
-    /// Organizes a movie according to the parsed content
-    /// - Parameters:
-    ///   - files: Array of files to organize
-    ///   - content: Parsed DVDCompare content
-    ///   - basePath: Base directory path
-    ///   - mergeStrategy: How to handle existing files
-    /// - Returns: Results of the organization operation
+   /// Organizes a movie according to the parsed content
+   /// - Parameters:
+   ///   - preview: Should not do file io, just preview
+   ///   - movieTitle: The title (in case the dir and main file do not conform to title)
+   ///   - files: Array of files to organize
+   ///   - content: Parsed DVDCompare content
+   ///   - basePath: Base directory path
+   ///   - mergeStrategy: How to handle existing files
+   /// - Returns: Results of the organization operation
    static func organizeMovie(
       preview: Bool,
+      movieTitle: String,
       files: [FileItem],
       content: DVDCompareContent,
       basePath: URL,
@@ -218,7 +221,7 @@ struct FileOrganizer {
          moveFile(
             preview: preview,
             from: mainMovie.url,
-            to: basePath.appendingPathComponent(mainMovie.name),
+            to: basePath.appendingPathComponent(movieTitle+"."+mainMovie.url.pathExtension),
             mergeStrategy: mergeStrategy,
             results: &results
          )
@@ -260,6 +263,18 @@ struct FileOrganizer {
                   mergeStrategy: mergeStrategy,
                   results: &results)
       })
+      
+      let directoryName = basePath.lastPathComponent
+      if ( directoryName != movieTitle ) {
+         let newBasePath: URL = basePath
+            .deletingLastPathComponent()
+            .appending(component: movieTitle, directoryHint: .isDirectory)
+         moveFile(preview: preview,
+                  from: basePath,
+                  to: newBasePath,
+                  mergeStrategy: .rename,
+                  results: &results)
+      }
       
       return results
    }
