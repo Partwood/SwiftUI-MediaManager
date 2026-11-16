@@ -30,6 +30,11 @@ struct FileBrowserView: View {
 
    // New Folder functionality
    @State private var showNewFolderDialog = false
+
+  // Rename functionality
+  @State private var showRenameDialog = false
+  @State private var itemBeingRenamed: FileItem? = nil
+  @State private var proposedNewName: String = ""
    
    @State private var sortOrder = [KeyPathComparator(\FileItem.name)]
    @State private var isShowingFolderPicker = false
@@ -119,13 +124,20 @@ struct FileBrowserView: View {
                   }
                   // Handle double-click natively on the cell view
                   .contextClickModifier(outerView: self,file: file, action: navigateTo)
-                  // Add context menu for right-click
                   .contextMenu {
+                     // Add context menu for right-click
                       Button(action: {
                           showNewFolderDialog = true
                       }) {
                           Label("New Folder", systemImage: "folder.badge.plus")
                       }
+                     Button(action: {
+                        itemBeingRenamed = file
+                        proposedNewName = file.name
+                        showRenameDialog = true
+                     }) {
+                        Label("Rename", systemImage: "pencil")
+                     }
                   }
                   .onModifierKeysChanged(mask: [.option,.shift]) { old, new in
                      let optionKey = new.contains(.option)
@@ -164,6 +176,11 @@ struct FileBrowserView: View {
                   loadDirectoryContents(at: URL(fileURLWithPath: currentPath))
                }
             }
+            .onChange(of: showRenameDialog) {
+               if ( !showRenameDialog ) {
+                  loadDirectoryContents(at: URL(fileURLWithPath: currentPath))
+               }
+            }
 
             // File Metadata Side Panel
             if showMetadataPanel,
@@ -183,12 +200,23 @@ struct FileBrowserView: View {
             ConflictResolutionView(viewModel: cutPasteViewModel!, existingFileName: item.file.name, proposedNewFileName: proposedNewFileName)
                .frame(width: 400, height: 350)
          }
+         
          // Show new folder dialog
          if showNewFolderDialog {
             NewFolderView(showNewFolderDialog: $showNewFolderDialog,
                           rootDirectoryURL: $rootDirectoryURL,
                           currentPath: currentPath)
          }
+         
+
+        // Show rename dialog
+        if showRenameDialog, let item = itemBeingRenamed {
+            RenameView(showRenameDialog: $showRenameDialog,
+                      rootDirectoryURL: $rootDirectoryURL,
+                      currentPath: currentPath,
+                      item: item,
+                      proposedNewName: $proposedNewName)
+        }
          
          // Cut/Paste Progress View
          if ( showPasteProgress ) {
