@@ -80,4 +80,31 @@ enum ExtraType: String, Codable, CaseIterable {
             return ["promotional", "soundtrack"]
         }
     }
+   
+   static func extraType(section: DVDCompareParser.Section) -> ExtraType? {
+      switch section {
+      case .episodes:
+         return nil
+      case .commentaries:
+         return .commentary
+      case .deleted_scenes:
+         return .deletedScene
+      case .music_videos:
+         return .musicVideo
+      case .trailers:
+         return .trailer
+      case .supplements:
+         return nil
+      case .featurettes:
+         return .featurette
+      case .behind_the_scenes:
+         return .behindTheScenes
+      case .making_of:
+         return .makingOf
+      case .interviews:
+         return .interview
+      case .documentaries:
+         return .documentary
+      }
+   }
 }

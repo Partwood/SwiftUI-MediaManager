@@ -156,41 +156,78 @@ struct DVDCompareParser {
         
         return nil
     }
-    
+
+   class SectionParser {
+      struct SectionRange {
+         var section: Section
+         var range: Range<String.Index>
+      }
+      
+      let sectionRanges: Array<SectionRange>
+      
+      init(from: String) {
+         self.sectionRanges = SectionParser.findSections(from: from)
+      }
+      
+      private static func findSections(from input: String) -> Array<SectionRange> {
+         // Find section headers
+         let sections = [
+            ("Episodes", "\\b([Ee]pisodes)(?:\\s*)?(?:\\([^)]*\\))?:?\n"),// TV Show Only
+            ("Commentaries", "\\b[Cc]ommentaries?:?\n"),
+            ("Deleted Scenes", "\\b[Dd]eleted\\s*[Ss]cenes?:?\n"),
+            ("Music Videos", "\\b[Mm]usic\\s*[Vv]ideos?:?\n"),
+            ("Trailers", "\\b[Tt]railers?:?\n"),
+            ("Supplements", "\\b[Ss]upplements?:?\n"),
+            ("Featurettes", "\\b[Ff]eaturettes?:?\n"),
+            ("Behind the Scenes", "\\b[Bb]ehind the [Ss]cenes?:?\n"),
+            ("Making Of", "\\b[Mm]aking [Oo]f:?\n"),
+            ("Interviews", "\\b[Ii]nterviews?:?\n"),
+            ("Documentaries", "\\b[Dd]ocumentaries?:?\n"),
+         ]
+         
+         var foundSections = Array<SectionRange>()
+         for (sectionName, pattern) in sections {
+            if let range = input.range(of: pattern, options: .regularExpression) {
+               if let currentSection = Section.section(rawValue: sectionName) {
+                  foundSections.append(SectionRange(section: currentSection,range: range))
+               }
+            }
+         }
+         
+         foundSections.sort(by: { a,b in a.range.upperBound < b.range.upperBound})
+         
+         return foundSections
+      }
+      
+      func processSections(processor: (Section,String.Index,String.Index?)->Void) {
+         for i in 0..<sectionRanges.count {
+            let start = sectionRanges[i].range.upperBound
+            let end = ((i+1) < sectionRanges.count) ? sectionRanges[i+1].range.lowerBound : nil
+            processor(sectionRanges[i].section,start,end)
+         }
+      }
+      
+      func processSections(from input: String,processor: (Section,Array<String>)->Void) {
+         for i in 0..<sectionRanges.count {
+            let sOffset = sectionRanges[i].range.upperBound
+            let eOffset = ((i+1) < sectionRanges.count) ? sectionRanges[i+1].range.lowerBound : nil
+
+            let remaining = (eOffset == nil) ? String(input[sOffset...]) : String(input[sOffset..<eOffset!])
+            let lines = remaining.components(separatedBy: .newlines)
+
+            processor(sectionRanges[i].section,lines)
+         }
+
+      }
+   }
+   
     /// Parses TV show content
     private static func parseTVShow(from input: String,into content: inout DVDCompareContent) {
-        // Find section headers
-        let sections = [
-            ("Episodes", "\\b([Ee]pisodes)(?:\\s*)?(?:\\([^)]*\\))?:?\n"),
-            ("Commentaries", "\\bCommentaries?:?\n"),
-            ("Deleted Scenes", "\\bDeleted\\s*Scenes?:?\n"),
-            ("Music Videos", "\\bMusic\\s*Videos?:?\n"),
-            ("Trailers", "\\bTrailers?:?\n"),
-            ("Supplements", "\\bSupplements?:?\n")
-        ]
-        
-       struct SectionRange {
-          var section: Section
-          var range: Range<String.Index>
-       }
+       let parser = SectionParser(from: input)
        
-       var foundSections = Array<SectionRange>()
-       for (sectionName, pattern) in sections {
-          if let range = input.range(of: pattern, options: .regularExpression) {
-             if let currentSection = Section.section(rawValue: sectionName) {
-                foundSections.append(SectionRange(section: currentSection,range: range))
-             }
-          }
-       }
-       
-       foundSections.sort(by: { a,b in a.range.upperBound < b.range.upperBound})
-
-       for i in 0..<foundSections.count {
-          let start = foundSections[i].range.upperBound//input.index(after: foundSections[i].range.upperBound)
-          let end = ((i+1) < foundSections.count) ? foundSections[i+1].range.lowerBound : nil
-          
+       parser.processSections(processor: { section,start,end in
           let delimiter: Character?
-          if foundSections[i].section == .episodes {
+          if section == .episodes {
              // Read the first line to identify episode delimiter.
              let remaining = (end == nil) ? String(input[start...]) : String(input[start..<end!])
              let startingLine: String = (remaining.components(separatedBy: .newlines).first ?? "").trimmingCharacters(in: .whitespaces)
@@ -200,9 +237,30 @@ struct DVDCompareParser {
           }
           
           parseSection(from: input, startingAt: start, endingAt: end, delimiter: delimiter,
-                       section: foundSections[i].section,
+                       section: section,
                        into: &content)
-       }
+       })
+       
+//       let foundSections = SectionParser(from: input).sectionRanges
+//       
+//       for i in 0..<foundSections.count {
+//          let start = foundSections[i].range.upperBound
+//          let end = ((i+1) < foundSections.count) ? foundSections[i+1].range.lowerBound : nil
+//          
+//          let delimiter: Character?
+//          if foundSections[i].section == .episodes {
+//             // Read the first line to identify episode delimiter.
+//             let remaining = (end == nil) ? String(input[start...]) : String(input[start..<end!])
+//             let startingLine: String = (remaining.components(separatedBy: .newlines).first ?? "").trimmingCharacters(in: .whitespaces)
+//             delimiter = startingLine.first
+//          } else {
+//             delimiter = nil
+//          }
+//          
+//          parseSection(from: input, startingAt: start, endingAt: end, delimiter: delimiter,
+//                       section: foundSections[i].section,
+//                       into: &content)
+//       }
     }
     
     /// Parses a specific section of content
@@ -429,61 +487,85 @@ struct DVDCompareParser {
             
             content.director = director
         }
-        
+               
+       let parser = SectionParser(from: input)
+       parser.processSections(from: input, processor: { section, lines in
+          let suggestedType: ExtraType?
+          if let extraType = ExtraType.extraType(section: section) {
+             suggestedType = extraType
+          } else {
+             suggestedType = nil
+          }
+          
+          for line in lines {
+             let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+             
+             // Skip empty lines
+             if trimmed.isEmpty {
+                continue
+             }
+             
+             // Parse extra lines
+             if let extra = parseExtraLine(trimmed,suggestedType: suggestedType) {
+                content.extras.append(extra)
+             }
+          }
+       })
+       
         // Parse extras
-        if let extrasRange = input.range(of: "Extras:", options: .backwards) {
-            parseExtras(from: input, startingAt: extrasRange.upperBound, into: &content)
-        }
-        
-        // Parse featurettes/behind the scenes
-        if let featurettesRange = input.range(of: "Featurettes:", options: .backwards) {
-            parseFeaturettes(from: input, startingAt: featurettesRange.upperBound, into: &content)
-        }
-        
-        // Parse behind the scenes
-        if let btsRange = input.range(of: "Behind the Scenes:", options: .backwards) {
-            parseBehindTheScenes(from: input, startingAt: btsRange.upperBound, into: &content)
-        }
-        
-        // Parse making of
-        if let makingRange = input.range(of: "Making Of:", options: .backwards) {
-            parseMakingOf(from: input, startingAt: makingRange.upperBound, into: &content)
-        }
-        
-        // Parse trailers
-        if let trailersRange = input.range(of: "Trailers:", options: .backwards) {
-            parseTrailers(from: input, startingAt: trailersRange.upperBound, into: &content)
-        }
-        
-        // Parse music videos
-        if let musicRange = input.range(of: "Music Video:", options: .backwards) {
-            parseMusicVideos(from: input, startingAt: musicRange.upperBound, into: &content)
-        }
+//        if let extrasRange = input.range(of: "Extras:", options: .backwards) {
+//           parseMovieExtras(from: input, suggestedType: .other,startingAt: extrasRange.upperBound, into: &content)
+//        }
+//        
+//        // Parse featurettes/behind the scenes
+//        if let featurettesRange = input.range(of: "Featurettes:", options: .backwards) {
+//           parseMovieExtras(from: input, suggestedType: .featurette, startingAt: featurettesRange.upperBound, into: &content)
+//        }
+//        
+//        // Parse behind the scenes
+//        if let btsRange = input.range(of: "Behind the Scenes:", options: .backwards) {
+//           parseMovieExtras(from: input, suggestedType: .behindTheScenes, startingAt: btsRange.upperBound, into: &content)
+//        }
+//        
+//        // Parse making of
+//        if let makingRange = input.range(of: "Making Of:", options: .backwards) {
+//           parseMovieExtras(from: input, suggestedType: .makingOf, startingAt: makingRange.upperBound, into: &content)
+//        }
+//        
+//        // Parse trailers
+//        if let trailersRange = input.range(of: "Trailers:", options: .backwards) {
+//           parseMovieExtras(from: input, suggestedType: .trailer, startingAt: trailersRange.upperBound, into: &content)
+//        }
+//        
+//        // Parse music videos
+//        if let musicRange = input.range(of: "Music Video:", options: .backwards) {
+//           parseMovieExtras(from: input, suggestedType: .musicVideo, startingAt: musicRange.upperBound, into: &content)
+//        }
     }
     
     /// Parses extras section
-    private static func parseExtras(from input: String, startingAt offset: String.Index, 
-                                   into content: inout DVDCompareContent) {
-        let remaining = String(input[offset...])
-        let lines = remaining.components(separatedBy: .newlines)
-        
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            // Skip empty lines and headers
-            if trimmed.isEmpty || trimmed.hasPrefix("Extras:") || trimmed.hasPrefix("Director:") {
-                continue
-            }
-            
-            // Parse extra lines
-            if let extra = parseExtraLine(trimmed) {
-                content.extras.append(extra)
-            }
-        }
-    }
+//   private static func parseMovieExtras(from input: String, suggestedType: ExtraType?,startingAt offset: String.Index,
+//                                   into content: inout DVDCompareContent) {
+//        let remaining = String(input[offset...])
+//        let lines = remaining.components(separatedBy: .newlines)
+//        
+//        for line in lines {
+//            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+//            
+//            // Skip empty lines
+//            if trimmed.isEmpty {
+//                continue
+//            }
+//            
+//            // Parse extra lines
+//           if let extra = parseExtraLine(trimmed,suggestedType: suggestedType) {
+//                content.extras.append(extra)
+//            }
+//        }
+//    }
     
     /// Parses an extra line
-    private static func parseExtraLine(_ line: String) -> Extra? {
+   private static func parseExtraLine(_ line: String,suggestedType: ExtraType?) -> Extra? {
        var titleCandidate: String = line.trimmingCharacters(in: .whitespacesAndNewlines)
        if ( titleCandidate.isEmpty ) {
           return nil
@@ -498,13 +580,16 @@ struct DVDCompareParser {
           duration = 0
        }
        
-       guard let results = detectExtraType(from: titleCandidate) else {
-          return nil
+      let type: ExtraType?
+       if let results = detectExtraType(from: titleCandidate) {
+          type = results.extraType
+          titleCandidate = String(titleCandidate[..<results.index])
+       } else {
+          type = suggestedType
        }
+      
+      guard let type else { return nil }
        
-       let type = results.extraType
-       titleCandidate = String(titleCandidate[..<results.index])
-
        let title = titleCandidate
           .trimmingCharacters(in: .whitespacesAndNewlines)
           .trimmingCharacters(in: CharacterSet(charactersIn: "\""))
@@ -549,108 +634,126 @@ private static func detectExtraType(from line: String) -> (extraType: ExtraType,
    }
 
     /// Parses featurettes section
-    private static func parseFeaturettes(from input: String, startingAt offset: String.Index, 
-                                        into content: inout DVDCompareContent) {
-        let remaining = String(input[offset...])
-        let lines = remaining.components(separatedBy: .newlines)
-        
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            if trimmed.isEmpty || trimmed.hasPrefix("Featurettes:") || trimmed.hasPrefix("Extras:") {
-                continue
-            }
-            
-            if let extra = parseExtraLine(trimmed) {
-                content.extras.append(extra)
-            }
-        }
-    }
+//    private static func parseFeaturettes(from input: String, startingAt offset: String.Index, 
+//                                        into content: inout DVDCompareContent) {
+//        let remaining = String(input[offset...])
+//        let lines = remaining.components(separatedBy: .newlines)
+//        
+//        for line in lines {
+//            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+//            
+//            if trimmed.isEmpty || trimmed.hasPrefix("Featurettes:") || trimmed.hasPrefix("Extras:") {
+//                continue
+//            }
+//            
+//            if let extra = parseExtraLine(trimmed) {
+//                content.extras.append(extra)
+//            }
+//        }
+//    }
     
     /// Parses behind the scenes section
-    private static func parseBehindTheScenes(from input: String, startingAt offset: String.Index, 
-                                            into content: inout DVDCompareContent) {
-        let remaining = String(input[offset...])
-        let lines = remaining.components(separatedBy: .newlines)
-        
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            if trimmed.isEmpty || trimmed.hasPrefix("Behind the Scenes:") {
-                continue
-            }
-            
-            if let extra = parseExtraLine(trimmed) {
-                content.extras.append(extra)
-            }
-        }
-    }
+//    private static func parseBehindTheScenes(from input: String, startingAt offset: String.Index, 
+//                                            into content: inout DVDCompareContent) {
+//        let remaining = String(input[offset...])
+//        let lines = remaining.components(separatedBy: .newlines)
+//        
+//        for line in lines {
+//            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+//            
+//            if trimmed.isEmpty || trimmed.hasPrefix("Behind the Scenes:") {
+//                continue
+//            }
+//            
+//            if let extra = parseExtraLine(trimmed) {
+//                content.extras.append(extra)
+//            }
+//        }
+//    }
     
     /// Parses making of section
-    private static func parseMakingOf(from input: String, startingAt offset: String.Index, 
-                                     into content: inout DVDCompareContent) {
-        let remaining = String(input[offset...])
-        let lines = remaining.components(separatedBy: .newlines)
-        
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            if trimmed.isEmpty || trimmed.hasPrefix("Making Of:") {
-                continue
-            }
-            
-            if let extra = parseExtraLine(trimmed) {
-                content.extras.append(extra)
-            }
-        }
-    }
+//    private static func parseMakingOf(from input: String, startingAt offset: String.Index, 
+//                                     into content: inout DVDCompareContent) {
+//        let remaining = String(input[offset...])
+//        let lines = remaining.components(separatedBy: .newlines)
+//        
+//        for line in lines {
+//            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+//            
+//            if trimmed.isEmpty || trimmed.hasPrefix("Making Of:") {
+//                continue
+//            }
+//            
+//            if let extra = parseExtraLine(trimmed) {
+//                content.extras.append(extra)
+//            }
+//        }
+//    }
     
     /// Parses trailers section
-    private static func parseTrailers(from input: String, startingAt offset: String.Index, 
-                                     into content: inout DVDCompareContent) {
-        let remaining = String(input[offset...])
-        let lines = remaining.components(separatedBy: .newlines)
-        
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            if trimmed.isEmpty || trimmed.hasPrefix("Trailers:") {
-                continue
-            }
-            
-            if let extra = parseExtraLine(trimmed) {
-                content.extras.append(extra)
-            }
-        }
-    }
+//    private static func parseTrailers(from input: String, startingAt offset: String.Index, 
+//                                     into content: inout DVDCompareContent) {
+//        let remaining = String(input[offset...])
+//        let lines = remaining.components(separatedBy: .newlines)
+//        
+//        for line in lines {
+//            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+//            
+//            if trimmed.isEmpty || trimmed.hasPrefix("Trailers:") {
+//                continue
+//            }
+//            
+//            if let extra = parseExtraLine(trimmed) {
+//                content.extras.append(extra)
+//            }
+//        }
+//    }
     
     /// Parses music videos section
-    private static func parseMusicVideos(from input: String, startingAt offset: String.Index, 
-                                        into content: inout DVDCompareContent) {
-        let remaining = String(input[offset...])
-        let lines = remaining.components(separatedBy: .newlines)
-        
-        for line in lines {
-            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            if trimmed.isEmpty || trimmed.hasPrefix("Music Video:") {
-                continue
-            }
-            
-            if let extra = parseExtraLine(trimmed) {
-                content.extras.append(extra)
-            }
-        }
-    }
+//    private static func parseMusicVideos(from input: String, startingAt offset: String.Index, 
+//                                        into content: inout DVDCompareContent) {
+//        let remaining = String(input[offset...])
+//        let lines = remaining.components(separatedBy: .newlines)
+//        
+//        for line in lines {
+//            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+//            
+//            if trimmed.isEmpty || trimmed.hasPrefix("Music Video:") {
+//                continue
+//            }
+//            
+//            if let extra = parseExtraLine(trimmed) {
+//                content.extras.append(extra)
+//            }
+//        }
+//    }
     
     /// Enum representing different sections in the input
    enum Section: String, CaseIterable {
+      /*
+       ("Episodes", "\\b([Ee]pisodes)(?:\\s*)?(?:\\([^)]*\\))?:?\n"),// TV Show Only
+       ("Commentaries", "\\b[Cc]ommentaries?:?\n"),
+       ("Deleted Scenes", "\\b[Dd]eleted\\s*[Ss]cenes?:?\n"),
+       ("Music Videos", "\\b[Mm]usic\\s*[Vv]ideos?:?\n"),
+       ("Trailers", "\\b[Tt]railers?:?\n"),
+       ("Supplements", "\\b[Ss]upplements?:?\n"),
+       ("Featurettes", "\\b[Ff]eaturettes?:?\n"),
+       ("Behind the Scenes", "\\b[Bb]ehind the [Ss]cenes?:?\n"),
+       ("Making Of", "\\b[Mm]aking [Oo]f:?\n"),
+       ("Interviews", "\\b[Ii]nterviews?:?\n"),
+       ("Documentaries", "\\b[Dd]ocumentaries?:?\n"),
+       */
       case episodes
       case commentaries
       case deleted_scenes
       case music_videos
       case trailers
       case supplements
+      case featurettes
+      case behind_the_scenes
+      case making_of
+      case interviews
+      case documentaries
       
       var name: String {
          switch self {
@@ -660,6 +763,11 @@ private static func detectExtraType(from line: String) -> (extraType: ExtraType,
          case .music_videos: return "Music Videos"
          case .trailers: return "Trailers"
          case .supplements: return "Supplements"
+         case .featurettes: return "Featurettes"
+         case .behind_the_scenes: return "Behind the Scenes"
+         case .making_of: return "Making Of"
+         case .interviews: return "Interviews"
+         case .documentaries: return "Documentaries"
          }
       }
       
