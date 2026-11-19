@@ -125,6 +125,22 @@ struct FileOrganizer {
                                         seasonPath: URL,
                                         mergeStrategy: MergeStrategy,
                                         results: inout OrganizationResults) {
+      // Does the list contain any mkv files that are at least the n minutes or more
+      let meetsMin = (files
+         .filter({ fileItem in
+            // By type (mkv) duration must be some min and duration must be found in the set of episodes
+            if (fileItem.contentType != .mkv) {
+               return false
+            }
+            
+            if ( fileItem.url.deletingLastPathComponent().filePath != seasonPath.filePath ) {
+               // Is not directly in seasonPath
+               return false
+            }
+            
+            return (fileItem.durationInSeconds ?? 0) >= (60.0*18.0) // n minutes or more
+         }).count > 0)
+      
       // Filter down to mkv files of a certain size in name sorted order in the seasonPath directory
       let orderedMKV = files
          .filter({ fileItem in
@@ -153,7 +169,12 @@ struct FileOrganizer {
                return true
             } else {
                if ( !durationsExist ) {
-                  return (fileItem.durationInSeconds ?? 0) >= (60.0*18.0) // n minutes or more
+                  if meetsMin {
+                     return (fileItem.durationInSeconds ?? 0) >= (60.0*18.0) // n minutes or more
+                  } else {
+                     // No durations and files meet the minimum, keep all
+                     return true
+                  }
                } else {
                   return false
                }
@@ -170,6 +191,7 @@ struct FileOrganizer {
                preview: preview,
                minEpisodeNumber: startingEpisode,
                episode: episodes[counter],
+               meetsMin: meetsMin,
                files: [orderedMKV[counter]],
                basePath: seasonPath,
                mergeStrategy: mergeStrategy,
@@ -183,6 +205,7 @@ struct FileOrganizer {
                preview: preview,
                minEpisodeNumber: startingEpisode,
                episode: episode,
+               meetsMin: meetsMin,
                files: files,
                basePath: seasonPath,
                mergeStrategy: mergeStrategy,
@@ -359,6 +382,7 @@ struct FileOrganizer {
       preview: Bool,
       minEpisodeNumber: Int,
       episode: Episode,
+      meetsMin: Bool,
       files: [FileItem],
       basePath: URL,
       mergeStrategy: MergeStrategy,
@@ -369,6 +393,7 @@ struct FileOrganizer {
        if !direct {
           // Find matching file
           guard let file = findMatchingFile(
+            meetsMin: meetsMin,
             files: files,
             minEpisodeNumber: minEpisodeNumber,
             episode: episode,
@@ -565,6 +590,7 @@ struct FileOrganizer {
     
     /// Finds a matching file for an episode
     private static func findMatchingFile(
+      meetsMin: Bool,
         files: [FileItem],
         minEpisodeNumber: Int,
         episode: Episode,
@@ -580,7 +606,12 @@ struct FileOrganizer {
                 let diff = abs(episode_duration - ($0.durationInSeconds ?? 0))
                 return (diff < (60.0*3.0)) // Is the duration within n minutes
              } else {
-                return ($0.durationInSeconds ?? 0) >= (60.0*18.0) // n minutes or more
+                if meetsMin {
+                   return ($0.durationInSeconds ?? 0) >= (60.0*18.0) // n minutes or more
+                } else {
+                   // No durations in episodes AND no minimum files, so just keep any that got this far
+                   return true
+                }
              }
           })
           .sorted(by: {

@@ -32,8 +32,9 @@ struct OrganizeAndTagView: View {
    
    @State var fileSystem: FileSystem
 
-   @Binding var showOrganizePanel: Bool
-   @Binding var organized: Bool
+   @Binding var cancelled: Bool
+   @Binding var completed: Bool
+   @Binding var needsRefresh: Bool
     
    let basePath: URL
    
@@ -49,7 +50,8 @@ struct OrganizeAndTagView: View {
                fileSystem: $fileSystem,
                seasonNumber: $seasonNumber,
                episodeNumber: $episodeNumber,
-               showOrganizePanel: $showOrganizePanel,
+               cancelled: $cancelled,
+               needsRefresh: $needsRefresh,
                organizationPreview: $viewModel.organizationPreview,
                organizationResults: $viewModel.organizationResults,
                appTab: $activeTab,
@@ -92,7 +94,8 @@ struct OrganizeAndTagView: View {
         .onChange(of: startOrganization, {
            if startOrganization {
               organize()
-              organized = true
+              needsRefresh = true
+              completed = true
            } else {
               activeTab = .import_view
            }
@@ -145,13 +148,15 @@ struct OrganizeAndTagView: View {
 
 // MARK: - Preview
 #Preview {
-   @Previewable @State var showOrganizePanel: Bool = false
-   @Previewable @State var organized: Bool = false
+   @Previewable @State var cancelled: Bool = false
+   @Previewable @State var completed: Bool = false
+   @Previewable @State var needsRefresh: Bool = false
    
    let fileSystem = FileSystem(URL(fileURLWithPath: "/Users"))
    
    OrganizeAndTagView(fileSystem: fileSystem,
-                      showOrganizePanel: $showOrganizePanel,
-                      organized: $organized,
+                      cancelled: $cancelled,
+                      completed: $completed,
+                      needsRefresh: $needsRefresh,
                       basePath: URL(fileURLWithPath: "/Users"))
 }

@@ -85,103 +85,105 @@ struct PreviewConfiguration: View {
    let mergeStrategy: MergeStrategy
 
    var body: some View {
-      Form {
-         // Show Information
-         Section(header: Text("Show Information")) {
-            // Preview Content
-            if preview.episodes.isEmpty && preview.extras.isEmpty {
-               // If tv show then needs episodes, if movie then needs extras (otherwise nothing to move)
-               Text("No content to organize")
-                  .foregroundColor(.secondary)
-            } else {
-               // Episodes
-               if !preview.episodes.isEmpty {
-                  Section("Episodes") {
-                     ForEach(preview.episodes) { episode in
+      ScrollView {
+         Form {
+            // Show Information
+            Section(header: Text("Show Information")) {
+               // Preview Content
+               if preview.episodes.isEmpty && preview.extras.isEmpty {
+                  // If tv show then needs episodes, if movie then needs extras (otherwise nothing to move)
+                  Text("No content to organize")
+                     .foregroundColor(.secondary)
+               } else {
+                  // Episodes
+                  if !preview.episodes.isEmpty {
+                     Section("Episodes") {
+                        ForEach(preview.episodes) { episode in
+                           HStack {
+                              Text("Episode \(episode.episodeNumber): \(episode.title+((episode.alternativeCut == nil) ? "" : " " + (episode.alternativeCut ?? "")))")
+                              Spacer()
+                              Text(DurationParser.format(episode.duration))
+                                 .foregroundColor(.secondary)
+                           }
+                        }
+                     }
+                  }
+                  
+                  // Commentaries
+                  if !preview.commentaries.isEmpty {
+                     Section("Commentaries") {
+                        ForEach(preview.commentaries) { commentary in
+                           Text("Commentary - \(commentary.title)")
+                        }
+                     }
+                  }
+                  
+                  // Deleted Scenes
+                  if !preview.deletedScenes.isEmpty {
+                     Section("Deleted Scenes") {
+                        ForEach(preview.deletedScenes) { scene in
+                           Text("Deleted Scene - \(scene.title)")
+                        }
+                     }
+                  }
+                  
+                  // Music Videos
+                  if !preview.musicVideos.isEmpty {
+                     Section("Music Videos") {
+                        ForEach(preview.musicVideos) { video in
+                           Text(video.title)
+                        }
+                     }
+                  }
+                  
+                  // Trailers
+                  if !preview.trailers.isEmpty {
+                     Section("Trailers") {
+                        ForEach(preview.trailers) { trailer in
+                           Text(trailer.title)
+                        }
+                     }
+                  }
+                  
+                  // Extras
+                  if !preview.extras.isEmpty {
+                     Section("Extras") {
+                        ForEach(preview.extras) { extra in
+                           Text("\(extra.extraType.displayName) - \(extra.title)")
+                        }
+                     }
+                  }
+                  
+                  // Movie Info
+                  if preview.mediaType == .movie, let director = preview.director {
+                     Section("Movie Information") {
                         HStack {
-                           Text("Episode \(episode.episodeNumber): \(episode.title+((episode.alternativeCut == nil) ? "" : " " + (episode.alternativeCut ?? "")))")
+                           Text("Director: \(director)")
                            Spacer()
-                           Text(DurationParser.format(episode.duration))
-                              .foregroundColor(.secondary)
-                        }
-                     }
-                  }
-               }
-               
-               // Commentaries
-               if !preview.commentaries.isEmpty {
-                  Section("Commentaries") {
-                     ForEach(preview.commentaries) { commentary in
-                        Text("Commentary - \(commentary.title)")
-                     }
-                  }
-               }
-               
-               // Deleted Scenes
-               if !preview.deletedScenes.isEmpty {
-                  Section("Deleted Scenes") {
-                     ForEach(preview.deletedScenes) { scene in
-                        Text("Deleted Scene - \(scene.title)")
-                     }
-                  }
-               }
-               
-               // Music Videos
-               if !preview.musicVideos.isEmpty {
-                  Section("Music Videos") {
-                     ForEach(preview.musicVideos) { video in
-                        Text(video.title)
-                     }
-                  }
-               }
-               
-               // Trailers
-               if !preview.trailers.isEmpty {
-                  Section("Trailers") {
-                     ForEach(preview.trailers) { trailer in
-                        Text(trailer.title)
-                     }
-                  }
-               }
-               
-               // Extras
-               if !preview.extras.isEmpty {
-                  Section("Extras") {
-                     ForEach(preview.extras) { extra in
-                        Text("\(extra.extraType.displayName) - \(extra.title)")
-                     }
-                  }
-               }
-               
-               // Movie Info
-               if preview.mediaType == .movie, let director = preview.director {
-                  Section("Movie Information") {
-                     HStack {
-                        Text("Director: \(director)")
-                        Spacer()
-                        if let year = preview.year {
-                           Text("Year: \(year)")
-                              .foregroundColor(.secondary)
+                           if let year = preview.year {
+                              Text("Year: \(year)")
+                                 .foregroundColor(.secondary)
+                           }
                         }
                      }
                   }
                }
             }
-         }
-         
-         Section(header: Text("Merge Strategy")) {
-            Text("\(mergeStrategy.description)")
-         }
-         
-         // Base Directory
-         Section(header: Text("Base Directory")) {
-            VStack {
-               Text(basePath.lastPathComponent)
-                  .font(.headline)
+            
+            Section(header: Text("Merge Strategy")) {
+               Text("\(mergeStrategy.description)")
+            }
+            
+            // Base Directory
+            Section(header: Text("Base Directory")) {
+               VStack {
+                  Text(basePath.lastPathComponent)
+                     .font(.headline)
+               }
             }
          }
+         .frame(width: 400)
       }
-      .frame(width: 400)
    }
 }
 

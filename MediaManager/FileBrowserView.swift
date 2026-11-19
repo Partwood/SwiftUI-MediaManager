@@ -1,3 +1,10 @@
+//
+//  FileBrowserView.swift
+//  MediaManager
+//
+//  Copyright © 2026 JVSherwood. All rights reserved.
+//
+
 import SwiftUI
 import Foundation
 import UniformTypeIdentifiers
@@ -21,8 +28,9 @@ struct ModifierKeys {
 // Add this to the top of the file
 
 struct FileBrowserView: View {
+   @Environment(\.openWindow) private var openWindow
+   
    @State private var initialPath: String = ""
-   @State private var currentPath: String = ""
    @State private var items: [FileItem] = []
 
    @State private var showMetadataPanel = false
@@ -45,9 +53,6 @@ struct FileBrowserView: View {
    @State var selectedFileID: FileItem.ID? = nil
    @State var selectedFileIDs: Set<FileItem.ID> = []
 
-   // Persist the exact security-scoped URL the user initially chose
-   @State private var rootDirectoryURL: URL? = nil
-   
    private var KrausValue: CGFloat { .infinity }
 
    @State var modifierKeys: ModifierKeys = ModifierKeys(shift: false, option: false, command: false)
@@ -59,10 +64,12 @@ struct FileBrowserView: View {
    @State private var proposedNewFileName: String = ""
    @State var showPasteProgress: Bool = false
    
-   // Organize and Tag functionality
-   @State var showOrganizePanel: Bool = false
-   @State var organized: Bool = false
-
+   // Persist the exact security-scoped URL the user initially chose
+   @State var rootDirectoryURL: URL? = nil
+   @State var currentPath: String = ""
+   
+   @Binding var needsRefresh: Bool
+   
    var body: some View {
       VStack(alignment: .leading, spacing: 12) {
          // Header controls
@@ -95,20 +102,14 @@ struct FileBrowserView: View {
             }
             
             if let rootURL = self.rootDirectoryURL {
-               let fileSystem = FileSystem(rootURL)
                let organizationPath: URL = URL(filePath: self.currentPath)
-               Button(action: { showOrganizePanel = true }) {
+               Button(action: {
+                  let callerFrame = NSApp.keyWindow?.frame ?? .zero
+                  openWindow(id: "mmgr.organizer",value: PopupContext(callerFrame,rootURL,organizationPath))
+               }) {
                   Label("Organize & Tag", systemImage: "tag.fill")
                }
                .buttonStyle(.bordered)
-               
-               if showOrganizePanel {
-                  OrganizeAndTagView(fileSystem: fileSystem,
-                                     showOrganizePanel: $showOrganizePanel,
-                                     organized: $organized,
-                                     basePath: organizationPath)
-                  .frame(minWidth: 600, minHeight: 400)
-               }
             }
          }
          .padding([.horizontal, .top])
@@ -243,26 +244,15 @@ struct FileBrowserView: View {
             print("Error selecting directory: \(error.localizedDescription)")
          }
       }
-      .onChange(of: organized, {
-         if organized {
+      .onChange(of: needsRefresh, {
+         if needsRefresh {
             self.selectedFiles.removeAll()
             self.selectedFileID = nil
             self.selectedFileIDs.removeAll()
             self.items.removeAll()
             let url = URL(fileURLWithPath: self.currentPath)
             loadDirectoryContents(at: url)
-            self.organized = false
-         }
-      })
-      .onChange(of: showOrganizePanel, {
-         if !showOrganizePanel {
-            self.selectedFiles.removeAll()
-            self.selectedFileID = nil
-            self.selectedFileIDs.removeAll()
-            self.items.removeAll()
-            let url = URL(fileURLWithPath: self.currentPath)
-            loadDirectoryContents(at: url)
-            self.organized = false
+            self.needsRefresh = false
          }
       })
     }

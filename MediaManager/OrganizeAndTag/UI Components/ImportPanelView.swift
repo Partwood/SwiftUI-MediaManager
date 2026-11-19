@@ -21,7 +21,8 @@ struct ImportPanelView: View {
    
    @Binding var seasonNumber: Int
    @Binding var episodeNumber: Int
-   @Binding var showOrganizePanel: Bool
+   @Binding var cancelled: Bool
+   @Binding var needsRefresh: Bool
    @Binding var organizationPreview: OrganizationPreview?
    @Binding var organizationResults: OrganizationResults?
    @Binding var appTab: OrganizeAndTagView.AppTab
@@ -127,7 +128,7 @@ struct ImportPanelView: View {
                 
                 Button("Cancel") {
                     // Cancel action
-                   showOrganizePanel = false
+                   cancelled = true
                 }
                 .buttonStyle(.bordered)
             }
@@ -227,7 +228,7 @@ struct ImportPanelView: View {
             logError(error)
          }
          
-         showOrganizePanel = false
+         needsRefresh = true
       })
    }
 }
@@ -235,7 +236,8 @@ struct ImportPanelView: View {
 #Preview {
    @Previewable @State var seasonNumber: Int = 1
    @Previewable @State var episodeNumber: Int = 1
-   @Previewable @State var showOrganizePanel: Bool = false
+   @Previewable @State var cancelled: Bool = false
+   @Previewable @State var needsRefresh: Bool = false
    @Previewable @State var organizationPreview: OrganizationPreview? = nil
    @Previewable @State var organizationResults: OrganizationResults? = nil
    @Previewable @State var appTab: OrganizeAndTagView.AppTab = .import_view
@@ -247,7 +249,8 @@ struct ImportPanelView: View {
       fileSystem: $fileSystem,
       seasonNumber: $seasonNumber,
       episodeNumber: $episodeNumber,
-      showOrganizePanel: $showOrganizePanel,
+      cancelled: $cancelled,
+      needsRefresh: $needsRefresh,
       organizationPreview: $organizationPreview,
       organizationResults: $organizationResults,
       appTab: $appTab,

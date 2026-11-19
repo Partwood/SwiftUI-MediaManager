@@ -231,7 +231,20 @@ struct DVDCompareParser {
              // Read the first line to identify episode delimiter.
              let remaining = (end == nil) ? String(input[start...]) : String(input[start..<end!])
              let startingLine: String = (remaining.components(separatedBy: .newlines).first ?? "").trimmingCharacters(in: .whitespaces)
-             delimiter = startingLine.first
+
+             // Check if the first line starts with a number followed by a period (numbered episode format)
+             // e.g., "1. a", "13. d" - in this case, there's no delimiter, the number is the episode number
+             let trimmedStartingLine = startingLine.trimmingCharacters(in: .whitespaces)
+             let isNumberedEpisode = trimmedStartingLine.range(of: "^\\d+\\.", options: .regularExpression) != nil
+             
+             if isNumberedEpisode {
+                delimiter = nil // No delimiter, the number is part of the episode number
+             } else {
+                delimiter = startingLine.first
+             }
+
+
+             //delimiter = startingLine.first
           } else {
              delimiter = nil
           }
@@ -240,27 +253,6 @@ struct DVDCompareParser {
                        section: section,
                        into: &content)
        })
-       
-//       let foundSections = SectionParser(from: input).sectionRanges
-//       
-//       for i in 0..<foundSections.count {
-//          let start = foundSections[i].range.upperBound
-//          let end = ((i+1) < foundSections.count) ? foundSections[i+1].range.lowerBound : nil
-//          
-//          let delimiter: Character?
-//          if foundSections[i].section == .episodes {
-//             // Read the first line to identify episode delimiter.
-//             let remaining = (end == nil) ? String(input[start...]) : String(input[start..<end!])
-//             let startingLine: String = (remaining.components(separatedBy: .newlines).first ?? "").trimmingCharacters(in: .whitespaces)
-//             delimiter = startingLine.first
-//          } else {
-//             delimiter = nil
-//          }
-//          
-//          parseSection(from: input, startingAt: start, endingAt: end, delimiter: delimiter,
-//                       section: foundSections[i].section,
-//                       into: &content)
-//       }
     }
     
     /// Parses a specific section of content
@@ -315,49 +307,60 @@ struct DVDCompareParser {
     }
     
     /// Parses an episode line
+    /// Parses an episode line
     static func parseEpisodeLine(_ line: String) -> Episode? {
-        // Pattern: '- "Episode Title" (MM:SS)' OR '"Episode Title" (MM:SS)'; Time could be optional
-       let titlePattern = "^(-\\s*)?\"?([^\"\\n]+)\"?(?:\\s*[^\\(\\n]*)?(\\((\\d{1,2}:\\d{2})\\))?"
-       //              (prefix)   (name     )   (!'(' and !'\n'  ) (duration               )
+        // Pattern: '- "Episode Title" (MM:SS)' OR '"Episode Title" (MM:SS)' OR '1. "Episode Title" (MM:SS)'
+        //              (prefix)   (name     )   (!'(' and !'\n'  ) (duration               )
+        // Also handles numbered episodes like "1. a" or "13. d"
+        let titlePattern = "^(-\\s*)?(\\d+\\.?)?\\s*\"?([^\"\\n]+)\"?(?:\\s*[^\\(\\n]*)?(\\((\\d{1,2}:\\d{2})\\))?"
+        //                   (prefix)(number  )        (name     )   (!'(' and !'\n'  ) (duration               )
         guard let regex = try? NSRegularExpression(pattern: titlePattern, options: .caseInsensitive),
               let match = regex.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)) else {
             return nil
         }
         
-       let title = line.string(match.range(at: 2)) ?? ""
-       
-       let duration: TimeInterval?
-       if let split = DurationParser.splitByLastOpenParen(line) {
-          let durationString = split.time
-          duration = DurationParser.parse(durationString)
-       } else {
-          duration = nil
-       }       
-
+        let title = line.string(match.range(at: 3)) ?? ""
+        
+        let duration: TimeInterval?
+        if let split = DurationParser.splitByLastOpenParen(line) {
+           let durationString = split.time
+           duration = DurationParser.parse(durationString)
+        } else {
+           duration = nil
+        }
+        
         // Check for alternative cuts
-       let isAlternativeCut: Bool
-       let alternativeCut:String?
-       if line.lowercased().contains("original") {
-          isAlternativeCut = true
-          alternativeCut = "Original cut"
-       } else if line.lowercased().contains("extended") {
-          isAlternativeCut = true
-          alternativeCut = "Extended cut"
-       } else if line.lowercased().contains("producer") {
-          isAlternativeCut = true
-          alternativeCut = "Producer cut"
-       } else if line.lowercased().contains("remaster") {
-          isAlternativeCut = true
-          alternativeCut = "Remastered cut"
-       } else {
-          isAlternativeCut = false
-          alternativeCut = nil
-       }
-       
+        let isAlternativeCut: Bool
+        let alternativeCut:String?
+        if line.lowercased().contains("original") {
+           isAlternativeCut = true
+           alternativeCut = "Original cut"
+        } else if line.lowercased().contains("extended") {
+           isAlternativeCut = true
+           alternativeCut = "Extended cut"
+        } else if line.lowercased().contains("producer") {
+           isAlternativeCut = true
+           alternativeCut = "Producer cut"
+        } else if line.lowercased().contains("remaster") {
+           isAlternativeCut = true
+           alternativeCut = "Remastered cut"
+        } else {
+           isAlternativeCut = false
+           alternativeCut = nil
+        }
+        
+        // Extract episode number from the numbered format if present
+        var episodeNumber: Int = 0
+        if let numberString = line.string(match.range(at: 2)) {
+            if let parsedNumber = Int(numberString) {
+                episodeNumber = parsedNumber
+            }
+        }
+        
         return Episode(
             title: title.trimmingCharacters(in: .whitespacesAndNewlines),
             duration: duration,
-            episodeNumber: 0, // Will be assigned later
+            episodeNumber: episodeNumber, // Will be assigned later if startingEpisode is set
             isDeletedScene: nil,
             plot: nil,
             cast: nil,
@@ -511,60 +514,9 @@ struct DVDCompareParser {
              }
           }
        })
-       
-        // Parse extras
-//        if let extrasRange = input.range(of: "Extras:", options: .backwards) {
-//           parseMovieExtras(from: input, suggestedType: .other,startingAt: extrasRange.upperBound, into: &content)
-//        }
-//        
-//        // Parse featurettes/behind the scenes
-//        if let featurettesRange = input.range(of: "Featurettes:", options: .backwards) {
-//           parseMovieExtras(from: input, suggestedType: .featurette, startingAt: featurettesRange.upperBound, into: &content)
-//        }
-//        
-//        // Parse behind the scenes
-//        if let btsRange = input.range(of: "Behind the Scenes:", options: .backwards) {
-//           parseMovieExtras(from: input, suggestedType: .behindTheScenes, startingAt: btsRange.upperBound, into: &content)
-//        }
-//        
-//        // Parse making of
-//        if let makingRange = input.range(of: "Making Of:", options: .backwards) {
-//           parseMovieExtras(from: input, suggestedType: .makingOf, startingAt: makingRange.upperBound, into: &content)
-//        }
-//        
-//        // Parse trailers
-//        if let trailersRange = input.range(of: "Trailers:", options: .backwards) {
-//           parseMovieExtras(from: input, suggestedType: .trailer, startingAt: trailersRange.upperBound, into: &content)
-//        }
-//        
-//        // Parse music videos
-//        if let musicRange = input.range(of: "Music Video:", options: .backwards) {
-//           parseMovieExtras(from: input, suggestedType: .musicVideo, startingAt: musicRange.upperBound, into: &content)
-//        }
     }
     
-    /// Parses extras section
-//   private static func parseMovieExtras(from input: String, suggestedType: ExtraType?,startingAt offset: String.Index,
-//                                   into content: inout DVDCompareContent) {
-//        let remaining = String(input[offset...])
-//        let lines = remaining.components(separatedBy: .newlines)
-//        
-//        for line in lines {
-//            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-//            
-//            // Skip empty lines
-//            if trimmed.isEmpty {
-//                continue
-//            }
-//            
-//            // Parse extra lines
-//           if let extra = parseExtraLine(trimmed,suggestedType: suggestedType) {
-//                content.extras.append(extra)
-//            }
-//        }
-//    }
-    
-    /// Parses an extra line
+   /// Parses an extra line
    private static func parseExtraLine(_ line: String,suggestedType: ExtraType?) -> Extra? {
        var titleCandidate: String = line.trimmingCharacters(in: .whitespacesAndNewlines)
        if ( titleCandidate.isEmpty ) {
@@ -605,7 +557,7 @@ struct DVDCompareParser {
     }
     
     /// Detects extra type from line content
-private static func detectExtraType(from line: String) -> (extraType: ExtraType,index: String.Index)? {
+   private static func detectExtraType(from line: String) -> (extraType: ExtraType,index: String.Index)? {
       let lowerLine = line.lowercased()
       
       if let startIndex = lowerLine.index(of: "commentary") {
@@ -632,101 +584,6 @@ private static func detectExtraType(from line: String) -> (extraType: ExtraType,
          return nil
       }
    }
-
-    /// Parses featurettes section
-//    private static func parseFeaturettes(from input: String, startingAt offset: String.Index, 
-//                                        into content: inout DVDCompareContent) {
-//        let remaining = String(input[offset...])
-//        let lines = remaining.components(separatedBy: .newlines)
-//        
-//        for line in lines {
-//            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-//            
-//            if trimmed.isEmpty || trimmed.hasPrefix("Featurettes:") || trimmed.hasPrefix("Extras:") {
-//                continue
-//            }
-//            
-//            if let extra = parseExtraLine(trimmed) {
-//                content.extras.append(extra)
-//            }
-//        }
-//    }
-    
-    /// Parses behind the scenes section
-//    private static func parseBehindTheScenes(from input: String, startingAt offset: String.Index, 
-//                                            into content: inout DVDCompareContent) {
-//        let remaining = String(input[offset...])
-//        let lines = remaining.components(separatedBy: .newlines)
-//        
-//        for line in lines {
-//            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-//            
-//            if trimmed.isEmpty || trimmed.hasPrefix("Behind the Scenes:") {
-//                continue
-//            }
-//            
-//            if let extra = parseExtraLine(trimmed) {
-//                content.extras.append(extra)
-//            }
-//        }
-//    }
-    
-    /// Parses making of section
-//    private static func parseMakingOf(from input: String, startingAt offset: String.Index, 
-//                                     into content: inout DVDCompareContent) {
-//        let remaining = String(input[offset...])
-//        let lines = remaining.components(separatedBy: .newlines)
-//        
-//        for line in lines {
-//            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-//            
-//            if trimmed.isEmpty || trimmed.hasPrefix("Making Of:") {
-//                continue
-//            }
-//            
-//            if let extra = parseExtraLine(trimmed) {
-//                content.extras.append(extra)
-//            }
-//        }
-//    }
-    
-    /// Parses trailers section
-//    private static func parseTrailers(from input: String, startingAt offset: String.Index, 
-//                                     into content: inout DVDCompareContent) {
-//        let remaining = String(input[offset...])
-//        let lines = remaining.components(separatedBy: .newlines)
-//        
-//        for line in lines {
-//            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-//            
-//            if trimmed.isEmpty || trimmed.hasPrefix("Trailers:") {
-//                continue
-//            }
-//            
-//            if let extra = parseExtraLine(trimmed) {
-//                content.extras.append(extra)
-//            }
-//        }
-//    }
-    
-    /// Parses music videos section
-//    private static func parseMusicVideos(from input: String, startingAt offset: String.Index, 
-//                                        into content: inout DVDCompareContent) {
-//        let remaining = String(input[offset...])
-//        let lines = remaining.components(separatedBy: .newlines)
-//        
-//        for line in lines {
-//            let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-//            
-//            if trimmed.isEmpty || trimmed.hasPrefix("Music Video:") {
-//                continue
-//            }
-//            
-//            if let extra = parseExtraLine(trimmed) {
-//                content.extras.append(extra)
-//            }
-//        }
-//    }
     
     /// Enum representing different sections in the input
    enum Section: String, CaseIterable {

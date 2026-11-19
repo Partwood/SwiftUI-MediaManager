@@ -11,9 +11,6 @@ import Testing
 struct OrganizerParsingTests {
 
     @Test func simpleEpisode() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-        // Swift Testing Documentation
-        // https://developer.apple.com/documentation/testing
        let content = await DVDCompareParser.parse(simpleEpisode)
        #expect(content.title == "Parks and Recreation")
        #expect(content.year == 2009)
@@ -24,9 +21,6 @@ struct OrganizerParsingTests {
     }
 
    @Test func complexEpisode() async throws {
-      // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-      // Swift Testing Documentation
-      // https://developer.apple.com/documentation/testing
       let content = await DVDCompareParser.parse(complexEpisode)
       #expect(content.title == "Star Trek: Enterprise")
       #expect(content.year == 2001)
@@ -37,9 +31,6 @@ struct OrganizerParsingTests {
    }
 
    @Test func variantEpisode() async throws {
-      // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-      // Swift Testing Documentation
-      // https://developer.apple.com/documentation/testing
       let content = await DVDCompareParser.parse(variantEpisode)
       #expect(content.title == "Star Trek: Enterprise")
       #expect(content.year == 2001)
@@ -50,9 +41,6 @@ struct OrganizerParsingTests {
    }
 
    @Test func redDwarfS1D1() async throws {
-      // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-      // Swift Testing Documentation
-      // https://developer.apple.com/documentation/testing
       let content = await DVDCompareParser.parse(redDwarfS1D1)
       #expect(content.title == "Red Dwarf")
       #expect(content.year == 1988)
@@ -63,9 +51,6 @@ struct OrganizerParsingTests {
    }
 
    @Test func redDwarfS1D1Indented() async throws {
-      // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-      // Swift Testing Documentation
-      // https://developer.apple.com/documentation/testing
       let content = await DVDCompareParser.parse(redDwarfS1D1Indented)
       #expect(content.title == "Red Dwarf")
       #expect(content.year == 1988)
@@ -76,9 +61,6 @@ struct OrganizerParsingTests {
    }
 
    @Test func movie1() async throws {
-      // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-      // Swift Testing Documentation
-      // https://developer.apple.com/documentation/testing
       let content = await DVDCompareParser.parse(movie1)
       #expect(content.title == "007 - Skyfall")
       #expect(content.year == 2012)
@@ -86,15 +68,22 @@ struct OrganizerParsingTests {
    }
    
    @Test func movie2() async throws {
-      // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-      // Swift Testing Documentation
-      // https://developer.apple.com/documentation/testing
       let content = await DVDCompareParser.parse(movie2)
       #expect(content.title == "When Harry Met Sally...")
       #expect(content.year == 1989)
       #expect(content.type == .movie)
    }
-
+   
+   @Test func schoolHouseRock() async throws {
+      let content = await DVDCompareParser.parse(schoolHouseRock)
+      #expect(content.title == "Schoolhouse Rock!")
+      #expect(content.year == 1972)
+      #expect(content.type == .tvShow)
+      #expect(content.season == 1)
+      
+      #expect(content.episodes.count == 47)
+   }
+   
    let simpleEpisode: String =
    """
    Parks and Recreation: Season 1 (TV) (2009)
@@ -211,4 +200,56 @@ struct OrganizerParsingTests {
    Music Video:
    - Harry Connick, Jr. "It Had To Be You" (2:48)
    """
+   
+   let schoolHouseRock: String = """
+      Schoolhouse Rock!: Season 1 (TV) (1972-1986)
+      Episodes:
+      1. Unpack Your Adjectives
+      2. Lolly, Lolly, Lolly, Get Your Adverbs Here
+      3. Conjunction Junction
+      4. Interjections!
+      5. Rufus Xavier Sarsaparilla
+      6. Verb: That's What's Happening
+      7. A Noun Is A Person, Place Or Thing
+      8. Busy Prepositions
+      9. The Tale Of Mr. Morton.
+      10. The Body Machine
+      11. Do The Circulation
+      12. Electricity, Electricity
+      13. The Energy Blues
+      14. Interplanet Janet
+      15. Telegraph Line
+      16. Them Not-So-Dry Bones
+      17. A Victim Of Gravity.
+      18. Dollars And Sense
+      19. $7.50 Once A Week
+      20. Where The Money Goes
+      21. Tax Man Max
+      22. Walkin' On Wall Street
+      23. This For That
+      24. Tyrannosaurus Debt
+      25. The Check's In The Mail.
+      26. My Hero, Zero
+      27. Elementary, My Dear
+      28. Three Is A Magic Number
+      29. The Four-Legged Zoo
+      30. Ready Or Not, Here I Come
+      31. I Got Six
+      32. Lucky Seven Sampson
+      33. Figure Eight
+      34. Naughty Number Nine
+      35. The Good Eleven
+      36. Little Twelvetoes.
+      37. No More Kings
+      38. Fireworks
+      39. The Shot Heard 'Round The World
+      40. The Preamble
+      41. Elbow Room
+      42. The Great American Melting Pot
+      43. Mother Necessity
+      44. Sufferin' Till Suffrage
+      45. I'm Just A Bill
+      46. Three Ring Government.
+      47. I'm Gonna Send Your Vote To College.
+      """
 }
