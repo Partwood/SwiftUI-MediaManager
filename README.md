@@ -17,6 +17,11 @@ MediaManager is a macOS application designed to provide a file browser-like expe
   - Categorize directories as movies, TV shows, or extras.
   - Move files based on criteria (e.g., duration thresholds).
 
+## Entry Points
+- **Main Application**: `MyApp.swift` - Launches the file browser as the default window
+- **Organize & Tag Window**: `OrganizeAndTagView.swift` - Main view for the organize and tag feature, opened via context menu or programmatically
+- **File Browser**: `FileBrowserView.swift` - Primary file browsing interface
+
 ## Technologies
 - Built with **Swift** and **SwiftUI** for macOS.
 - Utilizes **MCP functions** for system operations (file management, web requests, etc.).
