@@ -126,12 +126,6 @@ struct FileBrowserView: View {
                   // Handle double-click natively on the cell view
                   .contextClickModifier(outerView: self,file: file, action: navigateTo)
                   .contextMenu {
-                     // Add context menu for right-click
-                      Button(action: {
-                          showNewFolderDialog = true
-                      }) {
-                          Label("New Folder", systemImage: "folder.badge.plus")
-                      }
                      Button(action: {
                         itemBeingRenamed = file
                         proposedNewName = file.name
@@ -161,6 +155,14 @@ struct FileBrowserView: View {
                .width(100)
                
                TableColumn("Path", value: \.path)
+            }
+            .contextMenu {
+               // Add context menu for right-click
+               Button(action: {
+                  showNewFolderDialog = true
+               }) {
+                  Label("New Folder", systemImage: "folder.badge.plus")
+               }
             }
             .onChange(of: sortOrder, { _,newOrder in
                items.sort(using: newOrder)
