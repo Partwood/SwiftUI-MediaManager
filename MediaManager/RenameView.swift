@@ -2,21 +2,22 @@
 //  RenameView.swift
 //  MediaManager
 //
-//  Created by Joshua V Sherwood.
+//  Copyright © 2026 JVSherwood. All rights reserved.
 //
 
 import SwiftUI
 
 struct RenameView: View {
-    @Binding var showRenameDialog: Bool
-    @Binding var rootDirectoryURL: URL?
-    
-    let currentPath: String
-    let item: FileItem
-    @Binding var proposedNewName: String
-    
-    @State private var renameError: String?
-    
+   @Binding var showRenameDialog: Bool
+   @Binding var rootDirectoryURL: URL?
+   @Binding var needsRefresh: Bool
+   
+   @State private var proposedNewName: String = ""
+   @State private var renameError: String?
+   
+   let currentPath: String
+   let item: FileItem
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
@@ -82,10 +83,13 @@ struct RenameView: View {
             do {
                 try fileSystem.moveFile(src: itemURL, dst: newURL)
                 
-                showRenameDialog = false
                 proposedNewName = item.name
                 
-                // Reload directory contents
+               // Reload directory contents
+               needsRefresh = true
+               
+               // Complete, close
+               showRenameDialog = false
             } catch {
                 logError(error)
                 renameError = "Failed to rename: \(error.localizedDescription)"

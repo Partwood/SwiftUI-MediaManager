@@ -39,11 +39,6 @@ struct FileBrowserView: View {
    // New Folder functionality
    @State private var showNewFolderDialog = false
 
-  // Rename functionality
-  @State private var showRenameDialog = false
-  @State private var itemBeingRenamed: FileItem? = nil
-  @State private var proposedNewName: String = ""
-   
    @State private var sortOrder = [KeyPathComparator(\FileItem.name)]
    @State private var isShowingFolderPicker = false
    @State private var selectedDirectoryName: String = "No directory selected"
@@ -69,6 +64,11 @@ struct FileBrowserView: View {
    @State var currentPath: String = ""
    
    @Binding var needsRefresh: Bool
+   
+   // Context Menu functionality
+   @State private var contextItem: FileItem? = nil
+   @State private var showRename: Bool = false
+   @State private var showDelete: Bool = false
    
    var body: some View {
       VStack(alignment: .leading, spacing: 12) {
@@ -126,13 +126,45 @@ struct FileBrowserView: View {
                   // Handle double-click natively on the cell view
                   .contextClickModifier(outerView: self,file: file, action: navigateTo)
                   .contextMenu {
+                     //contextItem = file
+                     //ContextMenu(contextItem: file,showRename: $showRename,showDelete: $showDelete)
                      Button(action: {
-                        itemBeingRenamed = file
-                        proposedNewName = file.name
-                        showRenameDialog = true
+                        contextItem = file
+                        //proposedNewName = file.name
+                        showRename = true
                      }) {
                         Label("Rename", systemImage: "pencil")
                      }
+                     Button(action: {
+                        contextItem = file
+                        showDelete = true
+                     }) {
+                        Label("Delete", systemImage: "trash.circle")
+                     }
+//                     Button(action: {
+//                        itemBeingRenamed = file
+//                        proposedNewName = file.name
+//                        showRenameDialog = true
+//                     }) {
+//                        Label("Rename", systemImage: "pencil")
+//                     }
+//                     Button(action: {
+//                        showDeleteConfirmation = file
+//                     }) {
+//                        Label("Delete", systemImage: "trash.circle")
+//                     }
+//                     .confirmationDialog(
+//                        "Are you sure?",
+//                        isPresented: $showDeleteConfirmation,
+//                        titleVisibility: .visible // Optional: forces the title to show on iOS
+//                     ) {
+//                        Button("Delete", role: .destructive) {
+//                           // Perform delete action
+//                        }
+//                        Button("Cancel", role: .cancel) { }
+//                     } message: {
+//                        Text("This action cannot be undone.")
+//                     }
                   }
                   .onModifierKeysChanged(mask: [.option,.shift]) { old, new in
                      let optionKey = new.contains(.option)
@@ -174,15 +206,34 @@ struct FileBrowserView: View {
             .onChange(of: selectedFileIDs) { _,newSelection in
                handleMultiselectChanges()
             }
-            .onChange(of: showNewFolderDialog) {
-               if ( !showNewFolderDialog ) {
-                  loadDirectoryContents(at: URL(fileURLWithPath: currentPath))
+            .confirmationDialog(
+               "Are you sure?\n This would delete '\(contextItem?.url.lastPathComponent ?? "")'",
+               isPresented: $showDelete,
+               titleVisibility: .visible // Optional: forces the title to show on iOS
+            ) {
+               Button("Delete", role: .destructive) {
+                  // Perform delete action
+                  if let url = contextItem?.url {
+                     let fileSystem = FileSystem(self.rootDirectoryURL)
+                     fileSystem.accessURL(url, { accessedUrl in
+                        if let accessedUrl {
+                           do {
+                              try fileSystem.delete(src: accessedUrl)
+                              self.needsRefresh = true
+                           } catch {
+                              logError(error)
+                           }
+                        } else {
+                           logWarn("Couldn't access url.")
+                        }
+                     })
+                  } else {
+                     logWarn("Couldn't access contextItem url.")
+                  }
                }
-            }
-            .onChange(of: showRenameDialog) {
-               if ( !showRenameDialog ) {
-                  loadDirectoryContents(at: URL(fileURLWithPath: currentPath))
-               }
+               Button("Cancel", role: .cancel) { }
+            } message: {
+               Text("This action cannot be undone.")
             }
 
             // File Metadata Side Panel
@@ -213,12 +264,12 @@ struct FileBrowserView: View {
          
 
         // Show rename dialog
-        if showRenameDialog, let item = itemBeingRenamed {
-            RenameView(showRenameDialog: $showRenameDialog,
+        if showRename, let renameItem = contextItem {
+            RenameView(showRenameDialog: $showRename,
                       rootDirectoryURL: $rootDirectoryURL,
+                       needsRefresh: $needsRefresh,
                       currentPath: currentPath,
-                      item: item,
-                      proposedNewName: $proposedNewName)
+                      item: renameItem)
         }
          
          // Cut/Paste Progress View
@@ -247,15 +298,7 @@ struct FileBrowserView: View {
          }
       }
       .onChange(of: needsRefresh, {
-         if needsRefresh {
-            self.selectedFiles.removeAll()
-            self.selectedFileID = nil
-            self.selectedFileIDs.removeAll()
-            self.items.removeAll()
-            let url = URL(fileURLWithPath: self.currentPath)
-            loadDirectoryContents(at: url)
-            self.needsRefresh = false
-         }
+         refresh()
       })
     }
    
@@ -264,6 +307,23 @@ struct FileBrowserView: View {
       if file.isDirectory {
          loadDirectoryContents(at: file.url)
       }
+   }
+
+   private func refresh() {
+      if !needsRefresh {
+         return
+      }
+      
+      self.selectedFiles.removeAll()
+      self.selectedFileID = nil
+      self.selectedFileIDs.removeAll()
+      self.items.removeAll()
+      let url = URL(fileURLWithPath: self.currentPath)
+      loadDirectoryContents(at: url)
+      self.contextItem = nil
+      self.showRename = false
+      self.showDelete = false
+      self.needsRefresh = false
    }
    
    func loadDirectoryContents(at url: URL) {
