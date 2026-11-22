@@ -177,9 +177,12 @@ struct PasteProgressView: View {
 /// Main cut/paste control view
 struct CutPasteControls: View {
    @ObservedObject var viewModel: CutPasteViewModel
+   
    @Binding var selectedFileIDs: Set<FileItem.ID>
    @Binding var currentPath: String
    @Binding var showPasteProgress: Bool
+   @Binding var needsRefresh: Bool
+   
    let fileBrowserView: FileBrowserView
 
     var body: some View {
@@ -211,43 +214,58 @@ struct CutPasteControls: View {
                 .foregroundColor(.primary)
             }
             .buttonStyle(.bordered)
-            .disabled(!viewModel.isCutMode || viewModel.isPasteInProgress)
+            //.disabled(!viewModel.isCutMode || viewModel.isPasteInProgress)
+            .disabled(viewModel.cutBuffer.isEmpty)
             .keyboardShortcut(.return, modifiers: [.command])
             
             // Cancel button (shown during paste)
-            if viewModel.isPasteInProgress || viewModel.pasteComplete {
-                Button(action: {
-                    viewModel.cancelPaste()
-                }) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "xmark.circle.fill")
-                        Text("Cancel")
-                    }
-                    .font(.headline)
-                    .foregroundColor(.red)
-                }
-                .buttonStyle(.bordered)
-                .tint(.red)
-            }
+//            if viewModel.isPasteInProgress || viewModel.pasteComplete {
+//                Button(action: {
+//                    viewModel.cancelPaste()
+//                }) {
+//                    HStack(spacing: 8) {
+//                        Image(systemName: "xmark.circle.fill")
+//                        Text("Cancel")
+//                    }
+//                    .font(.headline)
+//                    .foregroundColor(.red)
+//                }
+//                .buttonStyle(.bordered)
+//                .tint(.red)
+//            }
             
             // Status indicator
-            if viewModel.isCutMode {
-                HStack(spacing: 8) {
-                    Image(systemName: "scissors")
-                    Text("\(viewModel.cutBuffer.count) file(s) cut - ready to paste")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 4)
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(4)
-            }
+//            if viewModel.isCutMode {
+//                HStack(spacing: 4) {
+//                    Image(systemName: "scissors")
+//                    Text("\(viewModel.cutBuffer.count) file(s) cut - ready to paste")
+//                        .font(.caption)
+//                        .foregroundColor(.secondary)
+//                   Button(action: {
+//                      viewModel.cancelPaste()
+//                      viewModel.cancelCut()
+//                   }) {
+//                      HStack(spacing: 0) {
+//                         Image(systemName: "xmark.circle.fill")
+//                         //Text("Cancel")
+//                      }
+//                      .font(.headline)
+//                      .foregroundColor(.red)
+//                   }
+//                   .buttonStyle(.bordered)
+//                   .tint(.red)
+//                }
+//                .padding(.horizontal)
+//                .padding(.vertical, 4)
+//                .background(Color.blue.opacity(0.1))
+//                .cornerRadius(4)
+//            }
         }
         .padding(0)
         .background(Color(NSColor.controlBackgroundColor))
         .onChange(of: viewModel.pasteComplete, {
            showPasteProgress = (viewModel.pasteComplete || viewModel.isPasteInProgress)
+           needsRefresh = true
         })
         .onChange(of: viewModel.isPasteInProgress, {
            showPasteProgress = (viewModel.pasteComplete || viewModel.isPasteInProgress)
