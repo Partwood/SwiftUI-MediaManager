@@ -69,8 +69,14 @@ struct Upper: View {
    @Binding var alert: FileMetadataView.AlertInfo?
 
    private func showInFinder(_ url: URL) {
-      NSWorkspace.shared.activateFileViewerSelecting([url])
-      //NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path(percentEncoded: false))
+      if let fileSystem {
+         fileSystem.accessURL(url, { inURL in
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+         })
+      } else {
+         alert = FileMetadataView.AlertInfo(alert_title: "Cannot View", alert_message: "No permission to view files.", alert_ok: "Ok")
+         alert_show = true
+      }
    }
    
    private func openFile(_ url: URL) {

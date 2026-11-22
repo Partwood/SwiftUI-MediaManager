@@ -85,6 +85,8 @@ class FileMetadataViewModel: ObservableObject {
                
                self.nfoMetadata = results.metadata
                self.nfoSections = results.sections
+               
+               generateMetadataText()
             } catch {
                logError(error)
             }
@@ -220,46 +222,86 @@ class FileMetadataViewModel: ObservableObject {
 //        }
     }
     
-    private func generateMetadataText() {
-//        var text = "=== File Metadata ===\n\n"
-//        
-//        if let file = file {
-//            text.append("Basic Information:\n")
-//            text.append("- Name: \(file.name)\n")
-//            text.append("- Type: \(file.type)\n")
-//            text.append("- Size: \(file.formattedSize)\n")
-//            text.append("- Path: \(file.path)\n")
-//            
-////            if let attributes = file.attributes {
-////                text.append("- Created: \(formatDate(attributes.creationDate))\n")
-////                text.append("- Modified: \(formatDate(attributes.modifiedDate))\n")
-////            }
-//            text.append("\n")
-//        }
-//        
-//       if let videoMetadata = self.videoMetadata {
-//            text.append("Video Information:\n")
-//            text.append("- Duration: \(formatDuration(videoMetadata.duration))\n")
-//            text.append("- Resolution: \(formatResolution(videoMetadata.resolution))\n")
-//            text.append("- Frame Rate: \(formatFrameRate(videoMetadata.frameRate))\n")
-//            text.append("- Video Codec: \(videoMetadata.videoCodec ?? "N/A")\n")
-//            if let audioCodec = videoMetadata.audioCodec {
-//                text.append("- Audio Codec: \(audioCodec)\n")
-//            }
-//            text.append("- Container: \(getContainerName(file?.contentType))\n")
-//            text.append("\n")
-//        }
-//        
-//       if let imageMetadata = self.imageMetadata {
-//            text.append("Image Information:\n")
-//            text.append("- Dimensions: \(formatResolution(imageMetadata.dimensions))\n")
-//            text.append("- Color Space: \(imageMetadata.colorSpace ?? "N/A")\n")
-//            text.append("- Bit Depth: \(imageMetadata.bitDepth ?? "N/A")\n")
-//            text.append("\n")
-//        }
-//        
-//        metadataText = text
+   private func generateMetadataText() {
+       var text = "=== File Metadata ===\n\n"
+
+       if let file = file {
+          text.append("Basic Information:\n")
+          text.append("- Name: \(file.name)\n")
+          text.append("- Type: \(file.type)\n")
+          text.append("- Size: \(file.formattedSize)\n")
+          text.append("- Path: \(file.path)\n")
+          
+          if let creationDate = file.creationDate {
+             text.append("- Created: \(formatDate(creationDate))\n")
+          }
+          if let modifiedDate = file.modifiedDate {
+             text.append("- Modified: \(formatDate(modifiedDate))\n")
+          }
+          
+          text.append("\n")
+       }
+
+      if let videoMetadata = self.videoMetadata {
+         text.append("Video Information:\n")
+         text.append("- Duration: \(formatDuration(videoMetadata.duration))\n")
+         text.append("- Resolution: \(formatResolution(videoMetadata.resolution))\n")
+         text.append("- Frame Rate: \(formatFrameRate(videoMetadata.frameRate))\n")
+         text.append("- Video Codec: \(videoMetadata.videoCodec ?? "N/A")\n")
+         if let audioCodec = videoMetadata.audioCodec {
+            text.append("- Audio Codec: \(audioCodec)\n")
+         }
+         if let file = file {
+            text.append("- Container: \(file.contentType.description)\n")
+         }
+         text.append("\n")
+      }
+      
+       if let imageMetadata = self.imageMetadata {
+            text.append("Image Information:\n")
+            text.append("- Dimensions: \(formatResolution(imageMetadata.dimensions))\n")
+            text.append("- Color Space: \(imageMetadata.colorSpace ?? "N/A")\n")
+            text.append("- Bit Depth: \(imageMetadata.bitDepth ?? "N/A")\n")
+            text.append("\n")
+        }
+      
+      if let nfoMetadata = self.nfoMetadata {
+         text.append("NFO Information:\n")
+
+         text = appendValue(text: text,prefix: "Show",nfoMetadata.showtitle)
+         text = appendValue(text: text,prefix: "Title",nfoMetadata.title)
+         text = appendValue(text: text,prefix: "Plot",nfoMetadata.plot)
+         text = appendValue(text: text,prefix: "Genre",nfoMetadata.genre)
+         text = appendValue(text: text,prefix: "Year",nfoMetadata.year)
+
+         text = appendValue(text: text,prefix: "Director",nfoMetadata.director)
+         text = appendValue(text: text,prefix: "Writer",nfoMetadata.writer)
+         text = appendValue(text: text,prefix: "Studio",nfoMetadata.studio)
+         text = appendValue(text: text,prefix: "Rating",nfoMetadata.rating)
+         
+         text = appendValue(text: text,prefix: "Season",nfoMetadata.seasonNumber)
+         text = appendValue(text: text,prefix: "Episode",nfoMetadata.episodeNumber)
+         
+         text = appendValue(text: text,prefix: "Runtime",nfoMetadata.runtime)
+
+         text = appendValue(text: text,prefix: "Tagline",nfoMetadata.tagline)
+
+         text = appendValue(text: text,prefix: "Poster",nfoMetadata.poster)
+         text = appendValue(text: text,prefix: "Fanart",nfoMetadata.fanart)
+
+         text.append("\n")
+      }
+        
+        metadataText = text
     }
+   
+   private func appendValue(text: String,prefix: String,_ value: Any?) -> String {
+      if let value {
+         return text + "- \(prefix): \(value)\n"
+      } else {
+         return text
+      }
+   }
     
     private func formatDate(_ date: Date?) -> String {
         guard let date = date else { return "N/A" }
@@ -291,15 +333,15 @@ class FileMetadataViewModel: ObservableObject {
         return String(format: "%.2f fps", frameRate)
     }
     
-    private func getContainerName(_ contentType: FileSystem.FileContentType) -> String {
-        switch contentType {
-        case .mkv: return "Matroska (MKV)"
-        case .mp4: return "MPEG-4"
-        case .avi: return "AVI"
-        case .mp3, .wav, .jpeg, .png: return "N/A"
-        default: return "N/A"
-        }
-    }
+//    private func getContainerName(_ contentType: FileSystem.FileContentType) -> String {
+//        switch contentType {
+//        case .mkv: return "Matroska (MKV)"
+//        case .mp4: return "MPEG-4"
+//        case .avi: return "AVI"
+//        case .mp3, .wav, .jpeg, .png: return "N/A"
+//        default: return "N/A"
+//        }
+//    }
 }
 
 struct VideoMetadata {
