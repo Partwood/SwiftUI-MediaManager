@@ -2,7 +2,7 @@
 //  extURL.swift
 //  MediaManager
 //
-//  Created by Joshua V Sherwood on 10/17/26.
+//  Copyright © 2026 JVSherwood. All rights reserved.
 //
 
 import Cocoa

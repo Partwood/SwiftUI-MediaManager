@@ -1,3 +1,10 @@
+//
+//  FileMetadataView.swift
+//  MediaManager
+//
+//  Copyright © 2026 JVSherwood. All rights reserved.
+//
+
 import SwiftUI
 import AVFoundation
 import ImageIO

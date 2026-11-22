@@ -2,7 +2,7 @@
 //  extString.swift
 //  MediaManager
 //
-//  Created by Joshua V Sherwood on 11/1/26.
+//  Copyright © 2026 JVSherwood. All rights reserved.
 //
 
 import Foundation

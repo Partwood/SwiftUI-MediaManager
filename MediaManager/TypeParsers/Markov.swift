@@ -2,7 +2,7 @@
 //  Markov.swift
 //  MediaManager
 //
-//  Created by Joshua V Sherwood on 10/25/26.
+//  Copyright © 2026 JVSherwood. All rights reserved.
 //
 
 // https://www.matroska.org/technical/elements.html

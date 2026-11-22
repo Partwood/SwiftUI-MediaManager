@@ -2,7 +2,7 @@
 //  FileItem.swift
 //  MediaManager
 //
-//  Created by Joshua V Sherwood on 10/26/26.
+//  Copyright © 2026 JVSherwood. All rights reserved.
 //
 
 import Foundation

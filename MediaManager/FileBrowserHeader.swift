@@ -2,7 +2,7 @@
 //  FileBrowserHeader.swift
 //  MediaManager
 //
-//  Created by Joshua V Sherwood on 11/22/26.
+//  Copyright © 2026 JVSherwood. All rights reserved.
 //
 
 
