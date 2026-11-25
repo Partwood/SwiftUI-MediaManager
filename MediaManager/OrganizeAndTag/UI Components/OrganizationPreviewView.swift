@@ -38,12 +38,14 @@ struct OrganizationPreviewView: View {
             }
          }
          
-         // Configuration
-         PreviewConfiguration(preview: preview,basePath: basePath,mergeStrategy: mergeStrategy)
-         
-         Divider()
-         
-         Results(results: results)
+         HStack(alignment: .top, spacing: 16) {
+            // Configuration
+            PreviewConfiguration(preview: preview,basePath: basePath,mergeStrategy: mergeStrategy)
+            
+            Divider()
+            
+            Results(results: results)
+         }
          
          // Summary
          HStack(spacing: 12) {

@@ -205,6 +205,7 @@ struct FileBrowserView: View {
          if showNewFolderDialog {
             NewFolderView(showNewFolderDialog: $showNewFolderDialog,
                           rootDirectoryURL: $rootDirectoryURL,
+                          needsRefresh: $needsRefresh,
                           currentPath: currentPath)
          }
          

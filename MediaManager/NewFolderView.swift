@@ -10,6 +10,7 @@ import SwiftUI
 struct NewFolderView: View {
    @Binding var showNewFolderDialog: Bool
    @Binding var rootDirectoryURL: URL?
+   @Binding var needsRefresh: Bool
    
    let currentPath: String
    @State private var newFolderName: String = ""
@@ -89,6 +90,7 @@ struct NewFolderView: View {
             newFolderName = ""
             
             // Reload the directory contents upon return (showNewFolderDialog change)
+            needsRefresh = true
          } catch {
             logError(error)
             createFolderError = "Failed to create folder: \(error.localizedDescription)"
